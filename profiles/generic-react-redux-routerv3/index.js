@@ -6,7 +6,7 @@ const build = (callback) => {
 	webpack(client_config, (err, stats) => {
 		console.log(stats.toJson('errors-only').errors.toString());
 		webpack(server_config, (err, stats) => {
-			console.log(stats.toJson('errors-only').errors);
+			console.log(stats.toJson('errors-only').errors.toString());
 			callback();
 		});
 	});
