@@ -1,6 +1,3 @@
-import 'isomorphic-fetch';
-//import 'es6-promise';
-
 import React from 'react'
 import { Router, browserHistory } from 'react-router'
 import { render } from 'react-dom'
