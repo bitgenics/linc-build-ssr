@@ -1,0 +1,25 @@
+{
+  "name": "@bitgenics/linc-profile-generic-react-redux-routerv3",
+  "version": "1.0.2",
+  "main": "index.js",
+  "repository": {},
+  "license": "MIT",
+  "dependencies": {
+    "babel-core": "^6.22.1",
+    "babel-loader": "^6.2.10",
+    "babel-preset-react-app": "^2.0.1",
+    "clean-webpack-plugin": "^0.1.15",
+    "css-loader": "^0.26.1",
+    "extract-text-webpack-plugin": "beta",
+    "file-loader": "^0.10.0",
+    "ignore-loader": "^0.1.2",
+    "react-dev-utils": "^0.4.2",
+    "react-helmet": "^4.0.0",
+    "redux-promise-counter": "^1.1.1",
+    "style-loader": "^0.13.1",
+    "svg-url-loader": "^2.0.1",
+    "url-loader": "^0.5.7",
+    "webpack": "^2.2.1",
+    "webpack-manifest-plugin": "^1.1.0"
+  }
+}
