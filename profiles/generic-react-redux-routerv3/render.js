@@ -10,10 +10,6 @@ import config from 'linc-config-js'
 
 const configMiddleware = config.redux.middleware || [];
 
-const ignoreMiddleware = store => next => action => {
-    next({type: 'ToIgnore'});
-}
-
 const render = (url, callback) => {
     match({ routes: config.router.routes, location: url }, (error, redirectLocation, renderProps) => {
         if(error) {
@@ -23,7 +19,7 @@ const render = (url, callback) => {
         } else if (renderProps) {
             try {
                 const promiseCounter = createPromiseCounter((state) => {
-                    const store = createStore((s) => s, state, applyMiddleware(ignoreMiddleware));
+                    const store = createStore((s) => s, state);
                     const html = ReactDOMServer.renderToString(
                         <Provider store={store}>
                             <RouterContext {...renderProps} />
