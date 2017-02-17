@@ -6,7 +6,10 @@ import { createStore, applyMiddleware } from 'redux'
 import { Provider } from 'react-redux'
 import createPromiseCounter from 'redux-promise-counter'
 import Helmet from 'react-helmet'
+import dot from 'dot'
 import config from 'linc-config-js'
+
+//doT.templateSettings.encode = /\$\{([\s\S]+?)\}/g
 
 const configMiddleware = config.redux.middleware || [];
 
@@ -16,10 +19,10 @@ const ignoreMiddleware = store => next => action => {
 
 const renderPost = (url, body, callback) => {
     const promiseCounter = createPromiseCounter((state) => {
-        const templ = require('marko').load(config.form_posts[url].redirect);
-        templ.renderToString({redux: state, form: body}, (err, output) => {
-            callback({statusCode: 302, location: output});
-        })
+        const redirect = config.form_posts[url].redirect;
+        const templ = dot.template(redirect);
+        const location = templ({redux: state, form: body});
+        callback(null, {statusCode:302, location});
     });
     const middleware = [promiseCounter].concat(configMiddleware);
 
@@ -27,16 +30,17 @@ const renderPost = (url, body, callback) => {
         config.redux.reducer,
         applyMiddleware(...middleware)
     );
-    const actionCreator = config.form_posts[url];
+    const actionCreator = config.form_posts[url].actionCreator;
+    console.log('actionCreator', actionCreator);
     store.dispatch(actionCreator(body));
 }
 
 const renderGet = (url, callback) => {
     match({ routes: config.router.routes, location: url }, (error, redirectLocation, renderProps) => {
         if(error) {
-            callback({statusCode:500, message: 'Error!'});
+            callback(null, {statusCode:500, message: 'Error!'});
         } else if(redirectLocation) {
-            callback({statusCode: 302, location: redirectLocation.pathname + redirectLocation.search});
+            callback(null, {statusCode: 302, location: redirectLocation.pathname + redirectLocation.search});
         } else if (renderProps) {
             try {
                 const promiseCounter = createPromiseCounter((state) => {
@@ -70,7 +74,7 @@ const renderGet = (url, callback) => {
             }
             catch (e) {
                 console.log(e);
-                callback({statusCode:500, message: 'Stuff happens'});
+                callback(null, {statusCode:500, message: 'Stuff happens'});
             }
         } else {
             callback(null, {statusCode: 404});
