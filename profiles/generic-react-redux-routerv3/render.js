@@ -10,7 +10,28 @@ import config from 'linc-config-js'
 
 const configMiddleware = config.redux.middleware || [];
 
-const render = (url, callback) => {
+const ignoreMiddleware = store => next => action => {
+    next({type: 'ToIgnore'});
+}
+
+const renderPost = (url, body, callback) => {
+    const promiseCounter = createPromiseCounter((state) => {
+        const templ = require('marko').load(config.form_posts[url].redirect);
+        templ.renderToString({redux: state, form: body}, (err, output) => {
+            callback({statusCode: 302, location: output});
+        })
+    });
+    const middleware = [promiseCounter].concat(configMiddleware);
+
+    const store = createStore(
+        config.redux.reducer,
+        applyMiddleware(...middleware)
+    );
+    const actionCreator = config.form_posts[url];
+    store.dispatch(actionCreator(body));
+}
+
+const renderGet = (url, callback) => {
     match({ routes: config.router.routes, location: url }, (error, redirectLocation, renderProps) => {
         if(error) {
             callback({statusCode:500, message: 'Error!'});
@@ -19,7 +40,7 @@ const render = (url, callback) => {
         } else if (renderProps) {
             try {
                 const promiseCounter = createPromiseCounter((state) => {
-                    const store = createStore((s) => s, state);
+                    const store = createStore((s) => s, state, applyMiddleware(ignoreMiddleware));
                     const html = ReactDOMServer.renderToString(
                         <Provider store={store}>
                             <RouterContext {...renderProps} />
@@ -57,4 +78,4 @@ const render = (url, callback) => {
     });
 }
 
-module.exports = render
+module.exports = {renderGet, renderPost}
