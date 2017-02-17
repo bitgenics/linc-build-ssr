@@ -7,7 +7,7 @@ module.exports = {
   entry: {
     'server-render': [path.resolve(__dirname, '../render.js')]
   },
-
+  target: 'node',
   resolve: {
     alias: {
       'linc-config-js': path.resolve(process.cwd(), 'src/linc.config.js')
