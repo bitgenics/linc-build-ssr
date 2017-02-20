@@ -10,7 +10,6 @@
     "babel-preset-react-app": "^2.1.0",
     "clean-webpack-plugin": "^0.1.15",
     "css-loader": "^0.26.1",
-    "dot": "^1.1.1",
     "extract-text-webpack-plugin": "beta",
     "file-loader": "^0.10.0",
     "ignore-loader": "^0.1.2",
@@ -20,6 +19,7 @@
     "style-loader": "^0.13.1",
     "svg-url-loader": "^2.0.2",
     "url-loader": "^0.5.7",
+    "url-templating": "^1.0.0",
     "webpack": "^2.2.1",
     "webpack-manifest-plugin": "^1.1.0"
   }

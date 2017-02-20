@@ -6,10 +6,8 @@ import { createStore, applyMiddleware } from 'redux'
 import { Provider } from 'react-redux'
 import createPromiseCounter from 'redux-promise-counter'
 import Helmet from 'react-helmet'
-import dot from 'dot'
+import url_templ from 'url-templating'
 import config from 'linc-config-js'
-
-//doT.templateSettings.encode = /\$\{([\s\S]+?)\}/g
 
 const configMiddleware = config.redux.middleware || [];
 
@@ -20,8 +18,7 @@ const ignoreMiddleware = store => next => action => {
 const renderPost = (url, body, callback) => {
     const promiseCounter = createPromiseCounter((state) => {
         const redirect = config.form_posts[url].redirect;
-        const templ = dot.template(redirect);
-        const location = templ({redux: state, form: body});
+        const location = url_templ(redirect, {redux:state, form: body});
         callback(null, {statusCode:302, location});
     });
     const middleware = [promiseCounter].concat(configMiddleware);
@@ -31,7 +28,6 @@ const renderPost = (url, body, callback) => {
         applyMiddleware(...middleware)
     );
     const actionCreator = config.form_posts[url].actionCreator;
-    console.log('actionCreator', actionCreator);
     store.dispatch(actionCreator(body));
 }
 
