@@ -1,13 +1,13 @@
-import path from 'path'
-import React from 'react'
-import { match, RouterContext } from 'react-router'
-import ReactDOMServer from 'react-dom/server'
-import { createStore, applyMiddleware } from 'redux'
-import { Provider } from 'react-redux'
-import createPromiseCounter from 'redux-promise-counter'
-import Helmet from 'react-helmet'
-import url_templ from 'url-templating'
-import config from 'linc-config-js'
+import React from 'react';
+import { match, RouterContext } from 'react-router';
+import ReactDOMServer from 'react-dom/server';
+import { createStore, applyMiddleware } from 'redux';
+import { Provider } from 'react-redux';
+import createPromiseCounter from 'redux-promise-counter';
+import Helmet from 'react-helmet';
+import url_templ from 'url-templating';
+import config from 'linc-config-js';
+import assets from 'asset-manifest';
 
 const configMiddleware = config.redux.middleware || [];
 
@@ -15,11 +15,37 @@ const ignoreMiddleware = store => next => action => {
     next({type: 'ToIgnore'});
 }
 
-const renderPost = (url, body, callback) => {
+const render200 = (req, res, renderProps, settings) => {
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'text/html');
+    res.write('<html><head>');
+    res.write(`<link rel="stylesheet" href="/${assets['vendor.css']}">`);
+    res.write(`<link rel="stylesheet" href="/${assets['main.css']}">`);
+    res.write(`<link rel="preload" as="script" href="/${assets['vendor.js']}">`);
+    res.write(`<link rel="preload" as="script" href="/${assets['main.js']}">`);
+    res.write(`<link rel="dns-prefetch" href="https://polyfill.io">`);
+    res.write(`<link rel="preload" as="script" href="https://polyfill.io/v2/polyfill.min.js?features=default,fetch">`);
+    res.write(`<script>window.${settings.variable}=${JSON.stringify(settings.settings)};</script>`);
+
     const promiseCounter = createPromiseCounter((state) => {
-        const redirect = config.form_posts[url].redirect;
-        const location = url_templ(redirect, {redux:state, form: body});
-        callback(null, {statusCode:302, location});
+        res.write(`<script>window.__INITIALSTATE__ = ${JSON.stringify(state)};</script>`);
+        const store = createStore((s) => s, state, applyMiddleware(ignoreMiddleware));
+        const html = ReactDOMServer.renderToString(
+            <Provider store={store}>
+                <RouterContext {...renderProps} />
+            </Provider>
+        );
+        const head = Helmet.rewind();
+        const tags = ['title', 'link', 'meta', 'style'];
+        tags.forEach((tag) => {
+            res.write(head[tag].toString());
+        });
+        
+        res.write(`</head><body><div id="root">${html}</div>`);
+        res.write(`<script src="/${assets['vendor.js']}"></script>`);
+        res.write(`<script src="/${assets['main.js']}"></script>`);
+        res.write(`<script src="https://polyfill.io/v2/polyfill.min.js?features=default,fetch"></script>`);
+        res.end('</body></html>');
     });
     const middleware = [promiseCounter].concat(configMiddleware);
 
@@ -27,55 +53,39 @@ const renderPost = (url, body, callback) => {
         config.redux.reducer,
         applyMiddleware(...middleware)
     );
-    const actionCreator = config.form_posts[url].actionCreator;
-    store.dispatch(actionCreator(body));
+
+    const html = ReactDOMServer.renderToString(
+        <Provider store={store}>
+            <RouterContext {...renderProps} />
+        </Provider>
+    );
+    Helmet.rewind();
 }
 
-const renderGet = (url, callback) => {
-    match({ routes: config.router.routes, location: url }, (error, redirectLocation, renderProps) => {
+
+const renderGet = (req, res, settings) => {
+    match({ routes: config.router.routes, location: req.url }, (error, redirectLocation, renderProps) => {
         if(error) {
-            callback(null, {statusCode:500, message: 'Error!'});
+            res.statusCode = 500;
+            res.end();
         } else if(redirectLocation) {
-            callback(null, {statusCode: 302, location: redirectLocation.pathname + redirectLocation.search});
+            res.statusCode = 302;
+            res.setHeader('Location', redirectLocation.pathname + redirectLocation.search);
+            res.end();
         } else if (renderProps) {
             try {
-                const promiseCounter = createPromiseCounter((state) => {
-                    const store = createStore((s) => s, state, applyMiddleware(ignoreMiddleware));
-                    const html = ReactDOMServer.renderToString(
-                        <Provider store={store}>
-                            <RouterContext {...renderProps} />
-                        </Provider>
-                    );
-                    const head = Helmet.rewind();
-                    if (head.htmlAttributes) head.htmlAttributes = head.htmlAttributes.toComponent()
-                    const tags = ['title', 'link', 'meta', 'style'];
-                    tags.forEach((tag) => {
-                        head[tag] = head[tag].toString();
-                    });
-                    callback(null, {statusCode: 200, body:html, head, state});
-                });
-                const middleware = [promiseCounter].concat(configMiddleware);
-
-                const store = createStore(
-                    config.redux.reducer,
-                    applyMiddleware(...middleware)
-                );
-
-                const html = ReactDOMServer.renderToString(
-                    <Provider store={store}>
-                        <RouterContext {...renderProps} />
-                    </Provider>
-                );
-                Helmet.rewind();
+                render200(req, res, renderProps, settings);
             }
             catch (e) {
                 console.log(e);
-                callback(null, {statusCode:500, message: 'Stuff happens'});
+                res.statusCode = 500;
+                res.end();
             }
         } else {
-            callback(null, {statusCode: 404});
+            res.statusCode = 404;
+            res.end();
         }
     });
 }
 
-module.exports = {renderGet, renderPost}
+module.exports = {renderGet}

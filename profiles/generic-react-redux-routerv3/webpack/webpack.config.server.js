@@ -10,7 +10,9 @@ module.exports = {
   target: 'node',
   resolve: {
     alias: {
-      'linc-config-js': path.resolve(process.cwd(), 'src/linc.config.js')
+      'linc-config-js': path.resolve(process.cwd(), 'src/linc.config.js'),
+      'linc-server-config-js': path.resolve(process.cwd(), 'src/linc.server.config.js'),
+      'asset-manifest': path.resolve(process.cwd(), 'dist/lib/asset-manifest.json')
     },
     modules: [path.resolve(process.cwd(), "node_modules"), path.resolve(__dirname, "../node_modules")]
   },
