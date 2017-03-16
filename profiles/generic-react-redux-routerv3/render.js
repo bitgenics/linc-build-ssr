@@ -28,7 +28,8 @@ const render200 = (req, res, renderProps, settings) => {
     res.write(`<link rel="dns-prefetch" href="https://polyfill.io">`);
     res.write(`<link rel="preload" as="script" href="https://polyfill.io/v2/polyfill.min.js?features=default,fetch">`);
     res.write(`<script>window.${settings.variable}=${JSON.stringify(settings.settings)};</script>`);
-    
+    if(res.flush) { res.flush() }
+
     const promiseCounter = createPromiseCounter((state) => {
         res.write(`<script>window.__INITIALSTATE__ = ${JSON.stringify(state)};</script>`);
         const store = createStore((s) => s, state, applyMiddleware(ignoreMiddleware));
