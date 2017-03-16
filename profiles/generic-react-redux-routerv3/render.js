@@ -19,6 +19,8 @@ const render200 = (req, res, renderProps, settings) => {
     res.statusCode = 200;
     res.setHeader('Content-Type', 'text/html');
     res.write('<html><head>');
+    res.write('<meta charset="utf-8">');
+    res.write('<meta name="viewport" content="width=device-width, initial-scale=1">');
     res.write(`<link rel="stylesheet" href="/${assets['vendor.css']}">`);
     res.write(`<link rel="stylesheet" href="/${assets['main.css']}">`);
     res.write(`<link rel="preload" as="script" href="/${assets['vendor.js']}">`);
@@ -26,7 +28,7 @@ const render200 = (req, res, renderProps, settings) => {
     res.write(`<link rel="dns-prefetch" href="https://polyfill.io">`);
     res.write(`<link rel="preload" as="script" href="https://polyfill.io/v2/polyfill.min.js?features=default,fetch">`);
     res.write(`<script>window.${settings.variable}=${JSON.stringify(settings.settings)};</script>`);
-
+    
     const promiseCounter = createPromiseCounter((state) => {
         res.write(`<script>window.__INITIALSTATE__ = ${JSON.stringify(state)};</script>`);
         const store = createStore((s) => s, state, applyMiddleware(ignoreMiddleware));
