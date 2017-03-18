@@ -45,9 +45,9 @@ const render200 = (req, res, renderProps, settings) => {
         });
         
         res.write(`</head><body><div id="root">${html}</div>`);
+        res.write(`<script src="https://polyfill.io/v2/polyfill.min.js?features=default,fetch"></script>`);
         res.write(`<script src="/${assets['vendor.js']}"></script>`);
         res.write(`<script src="/${assets['main.js']}"></script>`);
-        res.write(`<script src="https://polyfill.io/v2/polyfill.min.js?features=default,fetch"></script>`);
         res.end('</body></html>');
     });
     const middleware = [promiseCounter].concat(configMiddleware);
