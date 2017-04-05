@@ -1,6 +1,6 @@
 {
   "name": "@bitgenics/linc-build-ssr",
-  "version": "1.0.2",
+  "version": "1.1.2",
   "main": "src/index.js",
   "repository": {},
   "license": "MIT",
