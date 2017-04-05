@@ -21,16 +21,23 @@ const render200 = (req, res, renderProps, settings) => {
     res.write('<html><head>');
     res.write('<meta charset="utf-8">');
     res.write('<meta name="viewport" content="width=device-width, initial-scale=1">');
-    res.write(`<link rel="stylesheet" href="/${assets['vendor.css']}">`);
-    res.write(`<link rel="stylesheet" href="/${assets['main.css']}">`);
+    if(assets['vendor.css']) {
+        res.write(`<link rel="stylesheet" href="/${assets['vendor.css']}">`);    
+    }
+    if(assets['main.css']) {
+        res.write(`<link rel="stylesheet" href="/${assets['main.css']}">`);    
+    }
     res.write(`<link rel="preload" as="script" href="/${assets['vendor.js']}">`);
     res.write(`<link rel="preload" as="script" href="/${assets['main.js']}">`);
     res.write(`<link rel="dns-prefetch" href="https://polyfill.io">`);
     res.write(`<link rel="preload" as="script" href="https://polyfill.io/v2/polyfill.min.js?features=default,fetch">`);
     res.write(`<script>window.${settings.variable}=${JSON.stringify(settings.settings)};</script>`);
     if(res.flush) { res.flush() }
+    req.timings.firstFlush = toMsDiff(process.hrtime(), req.timings.start);
 
     const promiseCounter = createPromiseCounter((state) => {
+        req.timings.secondRenderStart = toMsDiff(process.hrtime(), req.timings.start);
+        const secondRenderStart = process.hrtime();
         res.write(`<script>window.__INITIALSTATE__ = ${JSON.stringify(state)};</script>`);
         const store = createStore((s) => s, state, applyMiddleware(ignoreMiddleware));
         const html = ReactDOMServer.renderToString(
@@ -49,24 +56,30 @@ const render200 = (req, res, renderProps, settings) => {
         res.write(`<script src="/${assets['vendor.js']}"></script>`);
         res.write(`<script src="/${assets['main.js']}"></script>`);
         res.end('</body></html>');
+        req.timings.secondRender = toMsDiff(process.hrtime(), secondRenderStart);
     });
+    const createStoreStart = process.hrtime();
     const middleware = [promiseCounter].concat(configMiddleware);
-
     const store = createStore(
         config.redux.reducer,
         applyMiddleware(...middleware)
     );
-
+    req.timings.createStore = toMsDiff(process.hrtime(), createStoreStart);
+    req.timings.firstRenderStart = toMsDiff(process.hrtime(), req.timings.start);
+    const firstRenderStart = process.hrtime();
     const html = ReactDOMServer.renderToString(
         <Provider store={store}>
             <RouterContext {...renderProps} />
         </Provider>
     );
+    req.timings.firstRender = toMsDiff(process.hrtime(), firstRenderStart);
     Helmet.rewind();
 }
 
 
 const renderGet = (req, res, settings) => {
+    req.timings = req.timings || { start: process.hrtime() }
+    req.timings.renderStart = toMsDiff(process.hrtime(), req.timings.start);
     match({ routes: config.router.routes, location: req.url }, (error, redirectLocation, renderProps) => {
         if(error) {
             res.statusCode = 500;
@@ -90,5 +103,7 @@ const renderGet = (req, res, settings) => {
         }
     });
 }
+
+const toMsDiff = (end, start) => (1000 * (end[0] - start[0])) + ((end[1] - start[1])/1000000)
 
 module.exports = {renderGet}
