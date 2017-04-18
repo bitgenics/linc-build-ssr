@@ -5,10 +5,10 @@ import { createStore, applyMiddleware } from 'redux';
 import { Provider } from 'react-redux';
 import createPromiseCounter from 'redux-promise-counter';
 import Helmet from 'react-helmet';
-import url_templ from 'url-templating';
-import config from 'linc-config-js';
+import createConfig from 'linc-config-js';
 import assets from 'asset-manifest';
 
+const config = typeof createConfig === 'function' ? createConfig('SERVER') : createConfig;
 const configMiddleware = config.redux.middleware || [];
 
 const ignoreMiddleware = store => next => action => {
@@ -29,8 +29,8 @@ const render200 = (req, res, renderProps, settings) => {
     }
     res.write(`<link rel="preload" as="script" href="/${assets['vendor.js']}">`);
     res.write(`<link rel="preload" as="script" href="/${assets['main.js']}">`);
-    res.write(`<link rel="dns-prefetch" href="https://polyfill.io">`);
-    res.write(`<link rel="preload" as="script" href="https://polyfill.io/v2/polyfill.min.js?features=default,fetch">`);
+    res.write(`<link rel="dns-prefetch" href="https://cdn.polyfill.io">`);
+    res.write(`<link rel="preload" as="script" href="https://cdn.polyfill.io/v2/polyfill.min.js?features=default,fetch">`);
     res.write(`<script>window.${settings.variable}=${JSON.stringify(settings.settings)};</script>`);
     if(res.flush) { res.flush() }
     req.timings.firstFlush = toMsDiff(process.hrtime(), req.timings.start);
@@ -46,13 +46,13 @@ const render200 = (req, res, renderProps, settings) => {
             </Provider>
         );
         const head = Helmet.rewind();
-        const tags = ['title', 'link', 'meta', 'style'];
+        const tags = ['title', 'link', 'meta', 'style', 'script'];
         tags.forEach((tag) => {
             res.write(head[tag].toString());
         });
         
         res.write(`</head><body><div id="root">${html}</div>`);
-        res.write(`<script src="https://polyfill.io/v2/polyfill.min.js?features=default,fetch"></script>`);
+        res.write(`<script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=default,fetch"></script>`);
         res.write(`<script src="/${assets['vendor.js']}"></script>`);
         res.write(`<script src="/${assets['main.js']}"></script>`);
         res.end('</body></html>');
@@ -64,6 +64,10 @@ const render200 = (req, res, renderProps, settings) => {
         config.redux.reducer,
         applyMiddleware(...middleware)
     );
+    if(config.init) {
+        config.init({store, config});
+    }
+
     req.timings.createStore = toMsDiff(process.hrtime(), createStoreStart);
     req.timings.firstRenderStart = toMsDiff(process.hrtime(), req.timings.start);
     const firstRenderStart = process.hrtime();
@@ -99,6 +103,8 @@ const renderGet = (req, res, settings) => {
             }
         } else {
             res.statusCode = 404;
+            console.log(`Could not find url: ${req.url}`);
+            console.log(config.router.routes);
             res.end();
         }
     });

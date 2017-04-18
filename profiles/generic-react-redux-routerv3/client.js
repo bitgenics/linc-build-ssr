@@ -4,8 +4,9 @@ import { render } from 'react-dom'
 import { createStore, applyMiddleware } from 'redux'
 import { Provider } from 'react-redux'
 
-import config from 'linc-config-js'
+import createConfig from 'linc-config-js'
 
+const config = typeof createConfig === 'function' ? createConfig('CLIENT') : createConfig;
 const configMiddleware = config.redux.middleware || [];
 const initialState = (window && window.__INITIALSTATE__) || {};
 
@@ -14,6 +15,10 @@ const store = createStore(
     initialState,
     applyMiddleware(...configMiddleware)
 );
+
+if(config.init) {
+    config.init({store, config});
+}
 
 render(
     <Provider store={store}>

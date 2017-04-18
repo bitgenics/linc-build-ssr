@@ -33,6 +33,14 @@ var publicPath = ensureSlash(homepagePathname, true);
 // Omit trailing slash as %PUBLIC_PATH%/xyz looks better than %PUBLIC_PATH%xyz.
 var publicUrl = ensureSlash(homepagePathname, false);
 
+/*
+      { 
+        enforce: "pre",
+        test: /\.css$/,
+        exclude: /node_modules/,
+        loader: 'typed-css-modules'
+      },
+*/
 module.exports = {
   entry: {
     'main': [path.resolve(__dirname, '../client.js')]
@@ -42,9 +50,12 @@ module.exports = {
     alias: {
       'linc-config-js': path.resolve(process.cwd(), 'src/linc.config.js')
     },
-    modules: [path.resolve(process.cwd(), "node_modules"), path.resolve(__dirname, "../node_modules")]
+    modules: [path.resolve(process.cwd(), "node_modules"), path.resolve(__dirname, "../node_modules")],
+    extensions: [".js", ".json", ".ts", ".tsx"]
   },
-
+  resolveLoader: {
+    modules: [path.resolve(__dirname, "../node_modules"), path.resolve(process.cwd(), "node_modules")],
+  },
   output: {
     // The build folder.
     path: path.resolve(process.cwd(), 'dist'),
@@ -69,7 +80,8 @@ module.exports = {
           /\.woff$/,
           /\.woff2$/,
           /\.eot$/,
-          /\.ttf$/
+          /\.ttf$/,
+          /\.(ts|tsx)$/
         ],
         loader: 'url-loader',
         query: {
@@ -85,6 +97,8 @@ module.exports = {
           name: '_assets/media/[name].[hash:8].[ext]'
         }
       },
+      { enforce: "pre", test: /\.js$/, loader: "source-map-loader" },
+      { test: /\.tsx?$/, loader: "awesome-typescript-loader" },
       {
         test: /\.js$/,
         loader: 'babel-loader',
@@ -124,7 +138,6 @@ module.exports = {
       minimize: true,
       debug: false
     }),
-    // add new bundle with name 'externals
     new webpack.optimize.CommonsChunkPlugin({
       name: 'vendor',
       minChunks: (module) => (

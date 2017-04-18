@@ -14,7 +14,11 @@ module.exports = {
       'linc-server-config-js': path.resolve(process.cwd(), 'src/linc.server.config.js'),
       'asset-manifest': path.resolve(process.cwd(), 'dist/lib/asset-manifest.json')
     },
+    extensions: [".js", ".json", ".ts", ".tsx"],
     modules: [path.resolve(process.cwd(), "node_modules"), path.resolve(__dirname, "../node_modules")]
+  },
+  resolveLoader: {
+    modules: [path.resolve(__dirname, "../node_modules"), path.resolve(process.cwd(), "node_modules")],
   },
 
   output: {
@@ -36,7 +40,8 @@ module.exports = {
           /\.woff$/,
           /\.woff2$/,
           /\.eot$/,
-          /\.ttf$/
+          /\.ttf$/,
+          /\.(ts|tsx)$/
         ],
         loader: 'url-loader',
         query: {
@@ -52,6 +57,8 @@ module.exports = {
           name: '_assets/media/[name].[hash:8].[ext]'
         }
       },
+      { enforce: "pre", test: /\.js$/, loader: "source-map-loader" },
+      { test: /\.tsx?$/, loader: "awesome-typescript-loader" },
       {
         test: /\.js$/,
         loader: 'babel-loader',
