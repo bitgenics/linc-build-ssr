@@ -8,7 +8,9 @@ import thunk from 'redux-thunk'
 const config = {
 	redux: {
 		reducer: reducer,
+    //initialState: {}
 		middleware: [ thunk ]
+    //enhancers: []
 	},
 	router: {
 		routes: routes	
@@ -56,4 +58,4 @@ const config = (render_env) => {
 
 
 export default config
-/*
+*/
