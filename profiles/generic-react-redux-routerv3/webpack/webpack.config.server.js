@@ -3,6 +3,10 @@ const webpack = require('webpack');
 
 process.env.NODE_ENV = 'production';
 
+const packageJson = require(path.resolve(process.cwd(), 'package.json'));
+const lincConfig = packageJson.linc || {};
+const srcDir = lincConfig.src || 'src';
+
 module.exports = {
   entry: {
     'server-render': [path.resolve(__dirname, '../render.js')]
@@ -10,9 +14,9 @@ module.exports = {
   target: 'node',
   resolve: {
     alias: {
-      'linc-config-js': path.resolve(process.cwd(), 'src/linc.config.js'),
-      'linc-server-config-js': path.resolve(process.cwd(), 'src/linc.server.config.js'),
-      'asset-manifest': path.resolve(process.cwd(), 'dist/lib/asset-manifest.json')
+      'linc-config-js': path.resolve(process.cwd(), srcDir, 'linc.config.js'),
+      'linc-server-config-js': path.resolve(process.cwd(), srcDir, 'linc.server.config.js'),
+      'asset-manifest': path.resolve(process.cwd(), 'dist', 'lib','asset-manifest.json')
     },
     extensions: [".js", ".json", ".ts", ".tsx"],
     modules: [path.resolve(process.cwd(), "node_modules"), path.resolve(__dirname, "../node_modules")]
@@ -22,8 +26,8 @@ module.exports = {
   },
 
   output: {
-    path: path.resolve(process.cwd(), 'dist'),
-    filename: 'lib/[name].js',
+    path: path.resolve(process.cwd(), 'dist', 'lib'),
+    filename: '[name].js',
     library: 'server',
     libraryTarget: 'commonjs2'
   },

@@ -18,12 +18,16 @@ function ensureSlash(path, needsSlash) {
   }
 }
 
+const packageJson = require(path.resolve(process.cwd(), 'package.json'));
+const lincConfig = packageJson.linc || {};
+const srcDir = lincConfig.src || 'src';
+
 // We use "homepage" field to infer "public path" at which the app is served.
 // Webpack needs to know it to put the right <script> hrefs into HTML even in
 // single-page apps that may serve index.html for nested URLs like /todos/42.
 // We can't use a relative path in HTML because we don't want to load something
 // like /todos/42/static/js/bundle.7289d.js. We have to know the root.
-var homepagePath = require(path.resolve(process.cwd(), 'package.json')).homepage;
+var homepagePath = packageJson.homepage;
 var homepagePathname = homepagePath ? url.parse(homepagePath).pathname : '/';
 // Webpack uses `publicPath` to determine where the app is being served from.
 // It requires a trailing slash, or the file assets will get an incorrect path.
@@ -33,14 +37,6 @@ var publicPath = ensureSlash(homepagePathname, true);
 // Omit trailing slash as %PUBLIC_PATH%/xyz looks better than %PUBLIC_PATH%xyz.
 var publicUrl = ensureSlash(homepagePathname, false);
 
-/*
-      { 
-        enforce: "pre",
-        test: /\.css$/,
-        exclude: /node_modules/,
-        loader: 'typed-css-modules'
-      },
-*/
 module.exports = {
   entry: {
     'main': [path.resolve(__dirname, '../client.js')]
@@ -48,7 +44,7 @@ module.exports = {
 
   resolve: {
     alias: {
-      'linc-config-js': path.resolve(process.cwd(), 'src/linc.config.js')
+      'linc-config-js': path.resolve(process.cwd(), srcDir, 'linc.config.js')
     },
     modules: [path.resolve(process.cwd(), "node_modules"), path.resolve(__dirname, "../node_modules")],
     extensions: [".js", ".json", ".ts", ".tsx"]
