@@ -58,7 +58,7 @@ module.exports = {
   },
   output: {
     // The build folder.
-    path: path.resolve(process.cwd(), 'dist'),
+    path: path.resolve(process.cwd(), 'dist', 'static'),
     // Generated JS file names (with nested folders).
     // There will be one main bundle, and one file per asynchronous chunk.
     // We don't currently advertise code splitting but Webpack supports it.
@@ -151,7 +151,7 @@ module.exports = {
       filename: '_assets/css/[name].[chunkhash:8].css'
     }),
     new ManifestPlugin({
-      fileName: 'lib/asset-manifest.json'
+      fileName: '../lib/asset-manifest.json'
     }),
     new webpack.optimize.UglifyJsPlugin({
       sourceMap: true,
