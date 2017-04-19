@@ -50,7 +50,7 @@ module.exports = {
     extensions: [".js", ".json", ".ts", ".tsx"]
   },
   resolveLoader: {
-    modules: [path.resolve(__dirname, "../node_modules"), path.resolve(process.cwd(), "node_modules")],
+    modules: [path.resolve(__dirname, "../node_modules")]
   },
   output: {
     // The build folder.
