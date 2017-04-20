@@ -46,11 +46,9 @@ module.exports = {
     alias: {
       'linc-config-js': path.resolve(process.cwd(), srcDir, 'linc.config.js')
     },
-    modules: [path.resolve(process.cwd(), "node_modules"), path.resolve(__dirname, "../node_modules")],
+
+    modules: ["node_modules", path.resolve(process.cwd(), "node_modules")],
     extensions: [".js", ".json", ".ts", ".tsx"]
-  },
-  resolveLoader: {
-    modules: [path.resolve(__dirname, "../node_modules")]
   },
   output: {
     // The build folder.

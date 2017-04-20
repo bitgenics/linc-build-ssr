@@ -19,10 +19,7 @@ module.exports = {
       'asset-manifest': path.resolve(process.cwd(), 'dist', 'lib','asset-manifest.json')
     },
     extensions: [".js", ".json", ".ts", ".tsx"],
-    modules: [path.resolve(process.cwd(), "node_modules"), path.resolve(__dirname, "../node_modules")]
-  },
-  resolveLoader: {
-    modules: [path.resolve(__dirname, "../node_modules")]
+    modules: ["node_modules", path.resolve(process.cwd(), "node_modules")],
   },
 
   output: {
