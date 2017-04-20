@@ -23,8 +23,8 @@ module.exports = {
   },
 
   output: {
-    path: path.resolve(process.cwd(), 'dist'),
-    filename: 'lib/[name].js',
+    path: path.resolve(process.cwd(), 'dist', 'static'),
+    filename: '../lib/[name].js',
     library: 'server',
     libraryTarget: 'commonjs2'
   },
