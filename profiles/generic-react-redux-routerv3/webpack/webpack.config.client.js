@@ -2,7 +2,6 @@ const path = require('path');
 const webpack = require('webpack');
 const ExtractTextPlugin = require("extract-text-webpack-plugin");
 const InterpolateHtmlPlugin = require('react-dev-utils/InterpolateHtmlPlugin');
-const CleanWebpackPlugin = require('clean-webpack-plugin');
 const ManifestPlugin = require('webpack-manifest-plugin');
 
 process.env.NODE_ENV = 'production';
@@ -119,11 +118,6 @@ module.exports = {
   },
 
   plugins: [
-    // clean some paths
-    new CleanWebpackPlugin(['_assets', 'lib'], {
-      root: path.resolve(process.cwd(), 'dist'),
-      verbose: false
-    }),
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify('production')
     }),
