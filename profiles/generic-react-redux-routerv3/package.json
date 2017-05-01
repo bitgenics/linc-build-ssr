@@ -23,7 +23,6 @@
     "typed-css-modules-loader": "^0.0.9",
     "typescript": "^2.2.2",
     "url-loader": "^0.5.8",
-    "url-templating": "^1.0.0",
     "webpack": "^2.4.1",
     "webpack-manifest-plugin": "^1.1.0"
   }
