@@ -70,7 +70,7 @@ module.exports = {
         }
       },
       {
-        include: /\.(css|less)$/,
+        include: /\.(css)$/,
         loader: 'ignore-loader'
       },
       {

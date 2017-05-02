@@ -102,7 +102,7 @@ module.exports = {
         }
       },
       {
-        test: /\.(css|less)$/,
+        test: /\.(css)$/,
         loader: ExtractTextPlugin.extract({
           fallback: { loader: 'style-loader', options: { sourceMap: true } },
           use:[
