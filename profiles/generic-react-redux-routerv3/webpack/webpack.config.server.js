@@ -36,7 +36,6 @@ module.exports = {
           /\.html$/,
           /\.(js|jsx)$/,
           /\.css$/,
-          /\.less$/,
           /\.json$/,
           /\.svg$/,
           /\.woff$/,
