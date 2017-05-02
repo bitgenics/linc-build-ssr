@@ -68,6 +68,7 @@ module.exports = {
           /\.html$/,
           /\.(js|jsx)$/,
           /\.css$/,
+          /\.less$/,
           /\.json$/,
           /\.svg$/,
           /\.woff$/,
@@ -95,16 +96,23 @@ module.exports = {
       {
         test: /\.js$/,
         loader: 'babel-loader',
-        exclude: /node_modules(?!\/@bitgenics\/linc-profile-generic-react-redux-routerv3\/client\.js$)/,
+        exclude: /node_modules(?!\/linc-profile-generic-react-redux-routerv3\/client\.js$)/,
         query: {
           presets: ['react-app']
         }
       },
       {
-        test: /\.css$/,
+        test: /\.(css|less)$/,
         loader: ExtractTextPlugin.extract({
           fallback: { loader: 'style-loader', options: { sourceMap: true } },
-          use: { loader: 'css-loader', options: { sourceMap: true } }
+          use:[
+                { 
+                  loader: 'css-loader', 
+                  options: { sourceMap: true }
+                }, {
+                    loader: 'less-loader'
+                }
+              ]
         })
       },
       {

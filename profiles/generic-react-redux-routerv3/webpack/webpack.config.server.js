@@ -36,6 +36,7 @@ module.exports = {
           /\.html$/,
           /\.(js|jsx)$/,
           /\.css$/,
+          /\.less$/,
           /\.json$/,
           /\.svg$/,
           /\.woff$/,
@@ -63,13 +64,13 @@ module.exports = {
       {
         test: /\.js$/,
         loader: 'babel-loader',
-        exclude: /node_modules(?!\/@bitgenics\/linc-profile-generic-react-redux-routerv3\/render\.js$)/,
+        exclude: /node_modules(?!\/linc-profile-generic-react-redux-routerv3\/render\.js$)/,
         query: {
           presets: ['react-app']
         }
       },
       {
-        include: /\.css$/,
+        include: /\.(css|less)$/,
         loader: 'ignore-loader'
       },
       {
