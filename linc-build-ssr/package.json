@@ -1,5 +1,5 @@
 {
-  "name": "@bitgenics/linc-build-ssr",
+  "name": "linc-build-ssr",
   "version": "1.2.2",
   "main": "src/index.js",
   "repository": {},
