@@ -8,7 +8,8 @@ import createConfig from 'linc-config-js'
 
 const config = typeof createConfig === 'function' ? createConfig('CLIENT') : createConfig;
 const configMiddleware = config.redux.middleware || [];
-const initialState = (window && window.__INITIALSTATE__) || {};
+const serverState = (window && window.__INITIALSTATE__) || {};
+const initialState = config.redux.parseServerState ? config.redux.parseServerState(serverState) : serverState;
 
 const store = createStore(
     config.redux.reducer,

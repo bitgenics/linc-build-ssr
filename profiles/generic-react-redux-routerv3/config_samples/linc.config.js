@@ -11,6 +11,11 @@ const config = {
     //initialState: {}
 		middleware: [ thunk ]
     //enhancers: []
+    //parseServerState: (serverState) => {
+    // If you have any special parsing you need to do of the plain
+    // plain JSON Object coming from the server you can do that here.
+    // Useful for example for immutable libraries like Immutable.js
+    //}
 	},
 	router: {
 		routes: routes	
