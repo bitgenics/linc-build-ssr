@@ -1,14 +1,11 @@
 const path = require('path');
-const fs = require('fs');
 const webpack = require('webpack');
+const common = require('./webpack-common.js');
 
-process.env.NODE_ENV = 'production';
-const LINC_DIR = path.resolve(__dirname, '..');
-const PROJECT_DIR = process.cwd();
+const LINC_DIR = common.LINC_DIR;
+const PROJECT_DIR = common.PROJECT_DIR;
 
-const packageJson = require(path.resolve(PROJECT_DIR, 'package.json'));
-const lincConfig = packageJson.linc || {};
-const srcDir = lincConfig.sourceDir || 'src';
+const srcDir = common.srcDir;
 
 const url_loader_config = {
   exclude: [
@@ -28,37 +25,6 @@ const url_loader_config = {
     name: '_assets/media/[name].[hash:8].[ext]'
   }
 }
-
-const babel_config = {
-  loader: {
-    test: /\.js$/,
-    loader: 'babel-loader',
-    exclude: /node_modules(?!\/linc-profile-generic-react-redux-routerv3\/render\.js$)/,
-    query: {}
-  },
-  query: {
-    presets: {},
-    plugins: {}
-  }
-}
-
-try {
-  const contents = fs.readFileSync(path.resolve(PROJECT_DIR, '.babelrc'));
-  const config = JSON.parse(contents);
-  if(config.presets) {
-    config.presets.forEach((elem) => {if(elem.indexOf('react') < 0) babel_config.query.presets[elem] = ''});   
-  }
-  if(config.plugins) {
-    config.plugins.forEach((elem) => {if(elem.indexOf('react') < 0) babel_config.query.plugins[elem] = ''});
-  }
-} catch (e) {
-  //ignore
-}
-
-babel_config.loader.query.presets = Object.keys(babel_config.query.presets).map((elem) => path.resolve(PROJECT_DIR, 'node_modules', `babel-preset-${elem}`));
-babel_config.loader.query.plugins = Object.keys(babel_config.query.plugins).map((elem) => path.resolve(PROJECT_DIR, 'node_modules', `babel-plugin-${elem}`));
-
-babel_config.loader.query.presets.push(path.resolve(LINC_DIR, 'node_modules', `babel-preset-react-app`))
 
 module.exports = {
   entry: {
@@ -111,7 +77,7 @@ module.exports = {
         }
       },
       { enforce: "pre", test: /\.js$/, loader: "source-map-loader" },
-      babel_config.loader,
+      common.babel_config,
       {
         include: /\.(css)$/,
         loader: 'ignore-loader'
@@ -139,8 +105,8 @@ module.exports = {
   devtool: 'source-map'
 };
 
-const deps = Object.keys(packageJson.dependencies).concat(Object.keys(packageJson.devDependencies));
-if(deps.includes('typescript')) {
+
+if(common.deps.includes('typescript')) {
   url_loader_config.exclude.push(/\.(ts|tsx)$/);
   module.exports.module.rules.push({ test: /\.tsx?$/, loader: "awesome-typescript-loader" })
 }
