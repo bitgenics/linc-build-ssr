@@ -17,15 +17,16 @@ const store = createStore(
     applyMiddleware(...configMiddleware)
 );
 
-if(config.init) {
-    config.init({store, config});
+const env = {store, config, history: browserHistory};
+if(config.init ==='function') {
+    config.init(env);
 }
 
 render(
-    <Provider store={store}>
+    <Provider store={env.store}>
         <Router
             routes={config.router.routes}
-            history={browserHistory}
+            history={env.history}
         />
     </Provider>,
     document.getElementById('root')

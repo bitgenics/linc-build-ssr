@@ -1,5 +1,5 @@
 import React from 'react';
-import { match, RouterContext } from 'react-router';
+import { match, RouterContext, createMemoryHistory } from 'react-router';
 import ReactDOMServer from 'react-dom/server';
 import { createStore, applyMiddleware } from 'redux';
 import { Provider } from 'react-redux';
@@ -40,22 +40,32 @@ const writeInitialHead = (req, res, settings) => {
     if(res.flush) { res.flush() }
 }
 
+const initialSetup = (req) => {
+    const memoryHistory = createMemoryHistory(req.url);
+    if(config.init ==='function') {
+        config.init(env);
+    }
+}
+
 const firstRenderPass = (req, promiseCounter, renderProps) => {
+    req.timings.firstRenderStartAt = toMsDiff(process.hrtime(), req.timings.start);
+    const memoryHistory = createMemoryHistory(req.url);
     const createStoreStart = process.hrtime();
     const middleware = [promiseCounter].concat(configMiddleware);
+    console.log(middleware);
     const store = createStore(
         config.redux.reducer,
         applyMiddleware(...middleware)
     );
-    if(config.init) {
-        config.init({store, config});
+    req.timings.createStoreDuration = toMsDiff(process.hrtime(), createStoreStart);
+    const env = {store, config, history: memoryHistory};
+    if(config.init ==='function') {
+        config.init(env);
     }
 
-    req.timings.createStoreDuration = toMsDiff(process.hrtime(), createStoreStart);
-    req.timings.firstRenderStartAt = toMsDiff(process.hrtime(), req.timings.start);
     const firstRenderStart = process.hrtime();
     const html = ReactDOMServer.renderToString(
-        <Provider store={store}>
+        <Provider store={env.store}>
             <RouterContext {...renderProps} />
         </Provider>
     );
@@ -105,12 +115,14 @@ const render200 = (req, res, renderProps, settings) => {
             sendToClient(req, res, firstResults.html, firstResults.head);
         }
     });
+
     const firstResults = firstRenderPass(req, promiseCounter, renderProps);
 }
 
 const renderGet = (req, res, settings) => {
     req.timings = req.timings || { start: process.hrtime() }
     req.timings.renderStartAt = toMsDiff(process.hrtime(), req.timings.start);
+    
     match({ routes: config.router.routes, location: req.url }, (error, redirectLocation, renderProps) => {
         req.timings.matchDuration = toMsDiff(process.hrtime(), req.timings.start);
         if(error) {
