@@ -171,5 +171,4 @@ if(common.deps.includes('stylus')) {
   url_loader_config.exclude.push(/\.(styl)$/);
   css_loader.test = /\.(css|styl)$/
   extractPlugin.push({loader: 'stylus-loader',});
-  console.log(extractPlugin);
 }
