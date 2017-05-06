@@ -50,24 +50,7 @@ module.exports = {
 
   module: {
     rules: [
-      {
-        exclude: [
-          /\.html$/,
-          /\.(js|jsx)$/,
-          /\.css$/,
-          /\.json$/,
-          /\.svg$/,
-          /\.woff$/,
-          /\.woff2$/,
-          /\.eot$/,
-          /\.ttf$/,
-        ],
-        loader: 'url-loader',
-        query: {
-          limit: 10000,
-          name: '_assets/media/[name].[hash:8].[ext]'
-        }
-      },
+      url_loader_config,
       {
         test: /\.svg$/,
         loader: 'svg-url-loader',
