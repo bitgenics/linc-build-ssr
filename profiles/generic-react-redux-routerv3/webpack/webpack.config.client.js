@@ -58,13 +58,18 @@ const extractPlugin = ExtractTextPlugin.extract({
   fallback: { loader: 'style-loader', options: { sourceMap: true } },
   use:[{ 
     loader: 'css-loader', 
-    options: { sourceMap: true }
+    options: {
+      sourceMap: true,
+      modules: true,
+      importLoaders: 1,
+      localIdentName: "[name]__[local]___[hash:base64:5]"
+    }
   }]
 })
 
 const css_loader = {
   test: /\.(css)$/,
-  loader: extractPlugin
+  loader: extractPlugin,
 }
 
 module.exports = {
@@ -77,8 +82,8 @@ module.exports = {
       'linc-config-js': path.resolve(PROJECT_DIR, srcDir, 'linc.config.js')
     },
 
-    modules: ["node_modules", path.resolve(PROJECT_DIR, "node_modules")],
-    extensions: [".js", ".json", ".ts", ".tsx"]
+    modules: [srcDir, "node_modules", path.resolve(PROJECT_DIR, "node_modules")],
+    extensions: [".js", ".json", ".ts", ".tsx", ".png"]
   },
   output: {
     // The build folder.
@@ -170,5 +175,18 @@ if(common.deps.includes('typescript')) {
 if(common.deps.includes('stylus')) {
   url_loader_config.exclude.push(/\.(styl)$/);
   css_loader.test = /\.(css|styl)$/
-  extractPlugin.push({loader: 'stylus-loader',});
+  extractPlugin.push({loader: 'stylus-loader'});
+}
+
+if(common.deps.includes('less')) {
+  url_loader_config.exclude.push(/\.(less)$/);
+  css_loader.test = /\.(css|less)$/
+  extractPlugin.push(
+    {
+      loader: 'less-loader',
+      options: {
+        sourceMap: true,
+      }
+    }
+  );
 }

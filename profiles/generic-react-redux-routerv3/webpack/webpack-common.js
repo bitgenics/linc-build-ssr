@@ -8,7 +8,8 @@ const PROJECT_DIR = process.cwd();
 
 const packageJson = require(path.resolve(PROJECT_DIR, 'package.json'));
 const lincConfig = packageJson.linc || {};
-const srcDir = lincConfig.sourceDir || 'src';
+const src = lincConfig.sourceDir || 'src';
+const srcDir = path.resolve(PROJECT_DIR, src);
 
 const deps = Object.keys(packageJson.dependencies).concat(Object.keys(packageJson.devDependencies));
 
@@ -17,31 +18,31 @@ const babel_config = {
     test: /\.js$/,
     loader: 'babel-loader',
     exclude: /node_modules(?!\/linc-profile-generic-react-redux-routerv3\/render\.js$)/,
-    query: {}
-  },
-  query: {
-    presets: {},
-    plugins: {}
+    options: {}
+  }
+}
+
+const makeBabelComponentAbsolute = (type, config) => {
+  const name = Array.isArray(config) ? config[0] : config;
+  const babel_name = name.indexOf('babel') === 0 ? name : `babel-${type}-${name}`;
+  const p = path.resolve(PROJECT_DIR, 'node_modules', babel_name);
+  if(Array.isArray(config)) {
+    config[0] = p;
+    return config
+  } else {
+    return p;
   }
 }
 
 try {
   const contents = fs.readFileSync(path.resolve(PROJECT_DIR, '.babelrc'));
   const config = JSON.parse(contents);
-  if(config.presets) {
-    config.presets.forEach((elem) => {if(elem.indexOf('react') < 0) babel_config.query.presets[elem] = ''});   
-  }
-  if(config.plugins) {
-    config.plugins.forEach((elem) => {if(elem.indexOf('react') < 0) babel_config.query.plugins[elem] = ''});
-  }
+  config.presets = config.presets.map((elem) => makeBabelComponentAbsolute('preset', elem));
+  config.plugins = config.plugins.map((elem) => makeBabelComponentAbsolute('plugin', elem));
+  babel_config.loader.options = config;
 } catch (e) {
   //ignore
 }
-
-babel_config.loader.query.presets = Object.keys(babel_config.query.presets).map((elem) => path.resolve(PROJECT_DIR, 'node_modules', `babel-preset-${elem}`));
-babel_config.loader.query.plugins = Object.keys(babel_config.query.plugins).map((elem) => path.resolve(PROJECT_DIR, 'node_modules', `babel-plugin-${elem}`));
-
-babel_config.loader.query.presets.push(path.resolve(LINC_DIR, 'node_modules', `babel-preset-react-app`))
 
 module.exports = {
   LINC_DIR, PROJECT_DIR, packageJson, lincConfig, srcDir, babel_config: babel_config.loader, deps

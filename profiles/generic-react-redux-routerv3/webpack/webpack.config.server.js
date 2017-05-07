@@ -37,8 +37,8 @@ module.exports = {
       'linc-server-config-js': path.resolve(PROJECT_DIR, srcDir, 'linc.server.config.js'),
       'asset-manifest': path.resolve(PROJECT_DIR, 'dist', 'lib','asset-manifest.json')
     },
-    extensions: [".js", ".json", ".ts", ".tsx"],
-    modules: ["node_modules", path.resolve(PROJECT_DIR, "node_modules")],
+    extensions: [".js", ".json", ".ts", ".tsx", ".png"],
+    modules: [srcDir, "node_modules", path.resolve(PROJECT_DIR, "node_modules")],
   },
 
   output: {
