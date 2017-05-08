@@ -14,12 +14,10 @@ const srcDir = path.resolve(PROJECT_DIR, src);
 const deps = Object.keys(packageJson.dependencies).concat(Object.keys(packageJson.devDependencies));
 
 const babel_config = {
-  loader: {
-    test: /\.js$/,
-    loader: 'babel-loader',
-    exclude: /node_modules(?!\/linc-profile-generic-react-redux-routerv3\/render\.js$)/,
-    options: {}
-  }
+  test: /\.js$/,
+  loader: 'babel-loader',
+  exclude: /node_modules(?!\/linc-profile-generic-react-redux-routerv3\/render\.js$)/,
+  options: {}
 }
 
 const makeBabelComponentAbsolute = (type, config) => {
@@ -37,13 +35,18 @@ const makeBabelComponentAbsolute = (type, config) => {
 try {
   const contents = fs.readFileSync(path.resolve(PROJECT_DIR, '.babelrc'));
   const config = JSON.parse(contents);
+  config.presets = config.presets || [];
+  config.plugins = config.plugins || [];
   config.presets = config.presets.map((elem) => makeBabelComponentAbsolute('preset', elem));
   config.plugins = config.plugins.map((elem) => makeBabelComponentAbsolute('plugin', elem));
-  babel_config.loader.options = config;
+  babel_config.options = config;
 } catch (e) {
   //ignore
 }
 
+babel_config.options.presets = babel_config.options.presets || [];
+babel_config.options.presets.push(path.resolve(LINC_DIR, 'node_modules', 'babel-preset-react-app'));
+
 module.exports = {
-  LINC_DIR, PROJECT_DIR, packageJson, lincConfig, srcDir, babel_config: babel_config.loader, deps
+  LINC_DIR, PROJECT_DIR, packageJson, lincConfig, srcDir, babel_config, deps
 }

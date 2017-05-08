@@ -60,7 +60,7 @@ const extractPlugin = ExtractTextPlugin.extract({
     loader: 'css-loader', 
     options: {
       sourceMap: true,
-      modules: true,
+      modules: common.packageJson.linc.cssModules || false,
       importLoaders: 1,
       localIdentName: "[name]__[local]___[hash:base64:5]"
     }
