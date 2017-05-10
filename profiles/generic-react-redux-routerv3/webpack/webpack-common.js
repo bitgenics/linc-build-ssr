@@ -1,5 +1,6 @@
 const path = require('path');
 const fs = require('fs');
+const webpack = require('webpack');
 
 process.env.NODE_ENV = 'production';
 
@@ -47,6 +48,12 @@ try {
 babel_config.options.presets = babel_config.options.presets || [];
 babel_config.options.presets.push(path.resolve(LINC_DIR, 'node_modules', 'babel-preset-react-app'));
 
+const env = lincConfig.build_env || {};
+const defineEnv = {};
+Object.keys(env).forEach((key) => defineEnv[key] = JSON.stringify(env[key]));
+defineEnv['process.env.NODE_ENV'] = JSON.stringify('production');
+const definePlugin = new webpack.DefinePlugin(defineEnv);
+
 module.exports = {
-  LINC_DIR, PROJECT_DIR, packageJson, lincConfig, srcDir, babel_config, deps
+  LINC_DIR, PROJECT_DIR, packageJson, lincConfig, srcDir, babel_config, deps, definePlugin
 }

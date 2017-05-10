@@ -79,7 +79,7 @@ module.exports = {
   },
 
   plugins: [
-    new webpack.DefinePlugin(process.env),
+    common.definePlugin,
     new webpack.optimize.OccurrenceOrderPlugin()
   ],
 
@@ -90,7 +90,6 @@ module.exports = {
   // 'eval' | 'cheap-eval-source-map' | 'cheap-module-eval-source-map' | 'eval-source-map'
   devtool: 'source-map'
 };
-
 
 if(common.deps.includes('typescript')) {
   url_loader_config.exclude.push(/\.(ts|tsx)$/);
