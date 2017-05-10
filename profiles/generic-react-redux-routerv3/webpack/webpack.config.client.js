@@ -143,6 +143,9 @@ module.exports = {
     new ManifestPlugin({
       fileName: '../lib/asset-manifest.json'
     }),
+    new webpack.ProvidePlugin({
+      React: 'react',
+    }),
     new webpack.optimize.UglifyJsPlugin({
       sourceMap: true,
       mangle: {

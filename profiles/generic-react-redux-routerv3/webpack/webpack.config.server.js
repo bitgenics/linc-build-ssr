@@ -80,7 +80,10 @@ module.exports = {
 
   plugins: [
     common.definePlugin,
-    new webpack.optimize.OccurrenceOrderPlugin()
+    new webpack.optimize.OccurrenceOrderPlugin(),
+    new webpack.ProvidePlugin({
+      React: 'react',
+    })
   ],
 
   stats: {
