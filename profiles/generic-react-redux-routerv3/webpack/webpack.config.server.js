@@ -74,6 +74,9 @@ module.exports = {
       }
     ]
   },
+  externals: {
+    'follow-redirects': 'follow-redirects'
+  },
 
   plugins: [
     new webpack.DefinePlugin(process.env),
