@@ -34,7 +34,9 @@ const writeInitialHead = (req, res, settings) => {
     res.write(`<link rel="preload" as="script" href="/${assets['main.js']}">`);
     res.write(`<link rel="dns-prefetch" href="https://cdn.polyfill.io">`);
     res.write(`<link rel="preload" as="script" href="https://cdn.polyfill.io/v2/polyfill.min.js?features=default,fetch">`);
-    res.write(`<script>window.${settings.variable}=${JSON.stringify(settings.settings)};</script>`);
+    res.write(`<script>`);
+        Object.keys(settings).forEach((key) => {res.write(`window.${key} = ${JSON.stringify(settings[key])}`)})
+    res.write(`</script>`);
     req.timings.writeHeadDuration = toMsDiff(process.hrtime(), writeHeadStart);
     req.timings.firstFlushStartAt = toMsDiff(process.hrtime(), req.timings.start);
     if(res.flush) { res.flush() }
@@ -52,7 +54,6 @@ const firstRenderPass = (req, promiseCounter, renderProps) => {
     const memoryHistory = createMemoryHistory(req.url);
     const createStoreStart = process.hrtime();
     const middleware = [promiseCounter].concat(configMiddleware);
-    console.log(middleware);
     const store = createStore(
         config.redux.reducer,
         applyMiddleware(...middleware)
