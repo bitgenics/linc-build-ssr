@@ -17,7 +17,7 @@ const deps = Object.keys(packageJson.dependencies).concat(Object.keys(packageJso
 const babel_config = {
   test: /\.js$/,
   loader: 'babel-loader',
-  exclude: /node_modules(?!\/linc-profile-generic-react-redux-routerv3\/render\.js$)/,
+  exclude: /node_modules(?!\/linc-profile-generic-react-redux-routerv3\/(render|client)\.js$)/,
   options: {}
 }
 
@@ -46,7 +46,13 @@ try {
 }
 
 babel_config.options.presets = babel_config.options.presets || [];
-babel_config.options.presets.push(path.resolve(LINC_DIR, 'node_modules', 'babel-preset-react-app'));
+const linc_babel_react_app = path.resolve(LINC_DIR, 'node_modules', 'babel-preset-react-app');
+if(fs.existsSync(linc_babel_react_app) ) {
+  babel_config.options.presets.push(path.resolve(linc_babel_react_app));  
+} else {
+  babel_config.options.presets.push(path.resolve(PROJECT_DIR, 'node_modules', 'babel-preset-react-app'));
+}
+
 
 const env = lincConfig.build_env || {};
 const defineEnv = {};

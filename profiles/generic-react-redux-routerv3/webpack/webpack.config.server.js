@@ -1,4 +1,5 @@
 const path = require('path');
+const fs = require('fs');
 const webpack = require('webpack');
 const common = require('./webpack-common.js');
 
@@ -26,6 +27,10 @@ const url_loader_config = {
   }
 }
 
+const linc_exenv_path = path.resolve(LINC_DIR, 'node_modules', 'fake-exenv');
+const prj_exenv_path = path.resolve(PROJECT_DIR, 'node_modules', 'fake-exenv');
+const exenvPath = fs.existsSync(linc_exenv_path) ? linc_exenv_path : prj_exenv_path;
+
 module.exports = {
   entry: {
     'server-render': [path.resolve(LINC_DIR, 'render.js')]
@@ -36,7 +41,7 @@ module.exports = {
       'linc-config-js': path.resolve(PROJECT_DIR, srcDir, 'linc.config.js'),
       'linc-server-config-js': path.resolve(PROJECT_DIR, srcDir, 'linc.server.config.js'),
       'asset-manifest': path.resolve(PROJECT_DIR, 'dist', 'lib','asset-manifest.json'),
-      'exenv': path.resolve(LINC_DIR, 'node_modules', 'fake-exenv')
+      'exenv': exenvPath
     },
     extensions: [".js", ".json", ".ts", ".tsx", ".png"],
     modules: [srcDir, "node_modules", path.resolve(PROJECT_DIR, "node_modules")],
