@@ -123,6 +123,8 @@ const render200 = (req, res, renderProps, settings) => {
 const renderGet = (req, res, settings) => {
     req.timings = req.timings || { start: process.hrtime() }
     req.timings.renderStartAt = toMsDiff(process.hrtime(), req.timings.start);
+    if(window.localStorage) window.localStorage.clear();
+    if(window.sessionStorage) window.sessionStorage.clear();
     
     match({ routes: config.router.routes, location: req.url }, (error, redirectLocation, renderProps) => {
         req.timings.matchDuration = toMsDiff(process.hrtime(), req.timings.start);

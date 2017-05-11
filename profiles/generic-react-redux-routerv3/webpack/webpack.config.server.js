@@ -35,7 +35,8 @@ module.exports = {
     alias: {
       'linc-config-js': path.resolve(PROJECT_DIR, srcDir, 'linc.config.js'),
       'linc-server-config-js': path.resolve(PROJECT_DIR, srcDir, 'linc.server.config.js'),
-      'asset-manifest': path.resolve(PROJECT_DIR, 'dist', 'lib','asset-manifest.json')
+      'asset-manifest': path.resolve(PROJECT_DIR, 'dist', 'lib','asset-manifest.json'),
+      'exenv': path.resolve(LINC_DIR, 'node_modules', 'fake-exenv')
     },
     extensions: [".js", ".json", ".ts", ".tsx", ".png"],
     modules: [srcDir, "node_modules", path.resolve(PROJECT_DIR, "node_modules")],

@@ -1413,6 +1413,10 @@ extsprintf@1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/extsprintf/-/extsprintf-1.0.2.tgz#e1080e0658e300b06294990cc70e1502235fd550"
 
+fake-exenv@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/fake-exenv/-/fake-exenv-1.0.0.tgz#ec2f5af73fb4fb65a7894658cebd1cdae78e5bd3"
+
 fastparse@^1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/fastparse/-/fastparse-1.1.1.tgz#d1e2643b38a94d7583b479060e6c4affc94071f8"
