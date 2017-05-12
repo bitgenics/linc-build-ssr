@@ -35,7 +35,7 @@ const writeInitialHead = (req, res, settings) => {
     res.write(`<link rel="dns-prefetch" href="https://cdn.polyfill.io">`);
     res.write(`<link rel="preload" as="script" href="https://cdn.polyfill.io/v2/polyfill.min.js?features=default,fetch">`);
     res.write(`<script>`);
-        Object.keys(settings).forEach((key) => {res.write(`window.${key} = ${JSON.stringify(settings[key])}`)})
+        Object.keys(settings).forEach((key) => {res.write(`window.${key} = ${JSON.stringify(settings[key])};\n`)})
     res.write(`</script>`);
     req.timings.writeHeadDuration = toMsDiff(process.hrtime(), writeHeadStart);
     req.timings.firstFlushStartAt = toMsDiff(process.hrtime(), req.timings.start);
