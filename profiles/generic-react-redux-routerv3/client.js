@@ -18,7 +18,7 @@ const store = createStore(
 );
 
 const env = {store, config, history: browserHistory};
-if(config.init ==='function') {
+if(typeof config.init ==='function') {
     config.init(env);
 }
 
