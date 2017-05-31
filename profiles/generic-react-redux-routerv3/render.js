@@ -51,9 +51,15 @@ const firstRenderPass = (req, promiseCounter, renderProps) => {
     req.eventcollector.startJob('rendererInitialSetup');
     const memoryHistory = createMemoryHistory(req.url);
     const middleware = [promiseCounter].concat(configMiddleware);
+    const enhancer = config.redux.enhancers ? 
+					compose(applyMiddleware(...middleware), ...config.redux.enhancers) :
+					applyMiddleware(...middleware);
+	const initialState = config.redux.initialState || {}
+
     const store = createStore(
         config.redux.reducer,
-        applyMiddleware(...middleware)
+        initialState,
+		enhancer
     );
     const env = {store, config, history: memoryHistory};
     if(config.init ==='function') {
