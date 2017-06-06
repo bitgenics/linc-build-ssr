@@ -1,7 +1,7 @@
 import React from 'react';
 import { match, RouterContext, createMemoryHistory } from 'react-router';
 import ReactDOMServer from 'react-dom/server';
-import { createStore, applyMiddleware } from 'redux';
+import { createStore, applyMiddleware, compose } from 'redux';
 import { Provider } from 'react-redux';
 import createPromiseCounter from 'redux-promise-counter';
 import EventCollector from 'event-collector';

@@ -1,7 +1,7 @@
 import React from 'react'
 import { Router, browserHistory } from 'react-router'
 import { render } from 'react-dom'
-import { createStore, applyMiddleware } from 'redux'
+import { createStore, applyMiddleware, compose } from 'redux'
 import { Provider } from 'react-redux'
 
 import createConfig from 'linc-config-js'
