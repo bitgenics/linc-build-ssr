@@ -122,6 +122,7 @@ const render200 = (req, res, renderProps, settings) => {
     });
 
     const firstResults = firstRenderPass(req, promiseCounter, renderProps);
+    console.log('FirstResults', firstResults);
 }
 
 const renderGet = (req, res, settings) => {
