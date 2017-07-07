@@ -81,7 +81,9 @@ module.exports = {
     ]
   },
   externals: {
-    'follow-redirects': 'follow-redirects'
+    'follow-redirects': 'follow-redirects',
+    'faye-websocket': 'faye-websocket',
+    'xmlhttprequest': 'xmlhttprequest'
   },
 
   plugins: [
