@@ -46,37 +46,66 @@ const writeInitialHead = (req, res, settings) => {
     req.eventcollector.endJob('writeInitialHead');
 }
 
-const firstRenderPass = (req, promiseCounter, renderProps) => {
-    req.eventcollector.startJob('firstRenderPass');
-    req.eventcollector.startJob('rendererInitialSetup');
-    const memoryHistory = createMemoryHistory(req.url);
-    const middleware = [promiseCounter].concat(configMiddleware);
-    const enhancer = config.redux.enhancers ? 
-					compose(applyMiddleware(...middleware), ...config.redux.enhancers) :
-					applyMiddleware(...middleware);
-	const initialState = config.redux.initialState || {}
-
-    const store = createStore(
-        config.redux.reducer,
-        initialState,
-		enhancer
-    );
-    const env = {store, config, history: memoryHistory};
-    if(config.init ==='function') {
-        config.init(env);
+const getUserInfo = (req, callback) => {
+    if(config.requestExtendedUserInfo) {
+        req.eventcollector.startJob('requestExtendedUserInfo');
+        fetch(`https://freegeoip.net/json/${req.ip}`).then((response) => {
+            return response.json();
+        }).then((json) => {
+            req.eventcollector.endJob('requestExtendedUserInfo');
+            callback(undefined, json);
+        }).catch((error) => {
+            req.eventcollector.addError(error);
+            callback(undefined, {ip: req.ip});
+        });
+    } else {
+        callback(undefined, {ip: req.ip});
     }
-    req.eventcollector.endJob('rendererInitialSetup');
+}
 
-    req.eventcollector.startJob('firstRender');
-    const html = ReactDOMServer.renderToString(
-        <Provider store={env.store}>
-            <RouterContext {...renderProps} />
-        </Provider>
-    );
-    const head = Helmet.rewind();
-    req.eventcollector.endJob('firstRender');
-    req.eventcollector.endJob('firstRenderPass');
-    return {html, head}
+const initEnvironment = (req, promiseCounter, callback) => {
+    req.eventcollector.startJob('rendererInitialSetup');
+    getUserInfo(req, (err, userInfo) => {
+        req.userInfo = userInfo;
+        const memoryHistory = createMemoryHistory(req.url);
+        const middleware = [promiseCounter].concat(configMiddleware);
+        const enhancer = config.redux.enhancers ? 
+                        compose(applyMiddleware(...middleware), ...config.redux.enhancers) :
+                        applyMiddleware(...middleware);
+        const initialState = config.redux.initialState || {}
+
+        const store = createStore(
+            config.redux.reducer,
+            initialState,
+            enhancer
+        );
+        
+        const env = {req, userInfo, store, config, history: memoryHistory};
+        if(config.init ==='function') {
+            config.init(env);
+        }
+        callback(null, env);
+        req.eventcollector.endJob('rendererInitialSetup');
+    });
+}
+
+const firstRenderPass = (env, renderProps) => {
+    try {
+        env.req.eventcollector.startJob('firstRender');
+        const html = ReactDOMServer.renderToString(
+            <Provider store={env.store}>
+                <RouterContext {...renderProps} />
+            </Provider>
+        );
+        const head = Helmet.rewind();
+        env.req.eventcollector.endJob('firstRender');
+        return {html, head}
+    } catch(e) {
+        console.log(e);
+        env.req.eventcollector.endJob('firstRender');
+        env.addError(e);
+        return {html: '', head: Helmet.rewind() }
+    }
 }
 
 const secondRenderPass = (req, state, renderProps) => {
@@ -97,9 +126,11 @@ const sendToClient = (req, res, html, head) => {
     const writeContentStart = process.hrtime();
     const tags = ['title', 'link', 'meta', 'style', 'script'];
     tags.forEach((tag) => {
-        res.write(head[tag].toString());
+        if(head[tag]) {
+            res.write(head[tag].toString());
+        }
     });
-    
+    res.write(`<script>window.__USER_INFO__ = ${JSON.stringify(req.userInfo)};</script>`);
     res.write(`</head><body><div id="root">${html}</div>`);
     res.write(`<script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=default,fetch"></script>`);
     res.write(`<script src="/${assets['vendor.js']}"></script>`);
@@ -111,26 +142,30 @@ const sendToClient = (req, res, html, head) => {
 
 const render200 = (req, res, renderProps, settings) => {
     writeInitialHead(req, res, settings);
+    let firstResults = undefined;
     const promiseCounter = createPromiseCounter((state, async) => {
         res.write(`<script>window.__INITIALSTATE__ = ${JSON.stringify(state)};</script>`);
         if(async) {
             const results = secondRenderPass(req, state, renderProps);
             sendToClient(req, res, results.html, results.head);
-        } else {
+        } else if(firstResults) {
             sendToClient(req, res, firstResults.html, firstResults.head);
+        } else {
+            sendToClient(req, res, '', {});
         }
     });
 
-    const firstResults = firstRenderPass(req, promiseCounter, renderProps);
-    console.log('FirstResults', firstResults);
+    initEnvironment(req, promiseCounter, (err, env) => {
+        firstResults = firstRenderPass(env, renderProps);
+    })
 }
 
 const renderGet = (req, res, settings) => {
-    req.eventcollector = req.eventcollector || new EventCollector();
+    req.eventcollector = req.eventcollector || new EventCollector({});
     req.eventcollector.addMeta({rendererVersion: VERSION, renderProfile: PROFILE});
     req.eventcollector.startJob('rendering');
-    if(window.localStorage) window.localStorage.clear();
-    if(window.sessionStorage) window.sessionStorage.clear();
+    if(global.window && window.localStorage) window.localStorage.clear();
+    if(global.window && window.sessionStorage) window.sessionStorage.clear();
     
     req.eventcollector.startJob('match');
     match({ routes: config.router.routes, location: req.url }, (error, redirectLocation, renderProps) => {

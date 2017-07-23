@@ -9,6 +9,7 @@ import createConfig from 'linc-config-js'
 const config = typeof createConfig === 'function' ? createConfig('CLIENT') : createConfig;
 const configMiddleware = config.redux.middleware || [];
 const serverState = (window && window.__INITIALSTATE__) || {};
+const userInfo = (window && window.__USER_INFO__) || {};
 const initialState = config.redux.parseServerState ? config.redux.parseServerState(serverState) : serverState;
 
 const enhancer = config.redux.enhancers ? 
@@ -21,7 +22,7 @@ const store = createStore(
 	enhancer
 );
 
-const env = {store, config, history: browserHistory};
+const env = {store, userInfo, config, history: browserHistory};
 if(typeof config.init ==='function') {
     config.init(env);
 }
