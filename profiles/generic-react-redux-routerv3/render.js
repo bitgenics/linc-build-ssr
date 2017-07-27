@@ -97,28 +97,31 @@ const firstRenderPass = (env, renderProps) => {
                 <RouterContext {...renderProps} />
             </Provider>
         );
-        const head = Helmet.rewind();
         env.req.eventcollector.endJob('firstRender');
-        return {html, head}
+        return {html, head: Helmet.rewind()}
     } catch(e) {
-        console.log(e);
         env.req.eventcollector.endJob('firstRender');
-        env.addError(e);
+        env.req.eventcollector.addError(e);
         return {html: '', head: Helmet.rewind() }
     }
 }
 
 const secondRenderPass = (req, state, renderProps) => {
-    req.eventcollector.startJob('secondRenderPass');
-    const store = createStore((s) => s, state, applyMiddleware(ignoreMiddleware));
-    const html = ReactDOMServer.renderToString(
-        <Provider store={store}>
-            <RouterContext {...renderProps} />
-        </Provider>
-    );
-    const head = Helmet.rewind();
-    req.eventcollector.endJob('secondRenderPass');
-    return {html, head};
+    try {
+        req.eventcollector.startJob('secondRenderPass');
+        const store = createStore((s) => s, state, applyMiddleware(ignoreMiddleware));
+        const html = ReactDOMServer.renderToString(
+            <Provider store={store}>
+                <RouterContext {...renderProps} />
+            </Provider>
+        );
+        req.eventcollector.endJob('secondRenderPass');
+        return {html, head: Helmet.rewind()};
+    } catch (e) {
+        req.eventcollector.endJob('secondRenderPass');
+        env.req.eventcollector.addError(e);
+        return {html: '', head: Helmet.rewind() }
+    }
 }
 
 const sendToClient = (req, res, html, head) => {
@@ -173,13 +176,13 @@ const renderGet = (req, res, settings) => {
         if(error) {
             res.statusCode = 500;
             req.eventcollector.addError(error);
-            res.end();
             req.eventcollector.endJob('rendering');
+            res.end();
         } else if(redirectLocation) {
             res.statusCode = 302;
             res.setHeader('Location', redirectLocation.pathname + redirectLocation.search);
-            res.end();
             req.eventcollector.endJob('rendering');
+            res.end();
         } else if (renderProps) {
             try {
                 render200(req, res, renderProps, settings);
@@ -189,6 +192,7 @@ const renderGet = (req, res, settings) => {
                 if(!res.headersSent) {
                     res.statusCode = 500;
                 }
+                req.eventcollector.endJob('rendering');
                 res.end();
             }
         } else {
