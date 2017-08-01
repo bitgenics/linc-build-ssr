@@ -24,6 +24,7 @@ const writeInitialHead = (req, res, settings) => {
     req.eventcollector.startJob('writeInitialHead');
     res.statusCode = 200;
     res.setHeader('Content-Type', 'text/html');
+    res.setHeader('Cache-Control', 'max-age=60');
     res.write('<html><head>');
     res.write('<meta charset="utf-8">');
     res.write('<meta name="viewport" content="width=device-width, initial-scale=1">');
@@ -98,11 +99,11 @@ const firstRenderPass = (env, renderProps) => {
             </Provider>
         );
         env.req.eventcollector.endJob('firstRender');
-        return {html, head: Helmet.rewind()}
+        return {html, head: Helmet.renderStatic()}
     } catch(e) {
         env.req.eventcollector.endJob('firstRender');
         env.req.eventcollector.addError(e);
-        return {html: '', head: Helmet.rewind() }
+        return {html: '', head: Helmet.renderStatic() }
     }
 }
 
@@ -152,6 +153,7 @@ const render200 = (req, res, renderProps, settings) => {
             const results = secondRenderPass(req, state, renderProps);
             sendToClient(req, res, results.html, results.head);
         } else if(firstResults) {
+            Object.keys(firstResults.head).forEach((key) => { console.log(firstResults.head[key].toString() )} );
             sendToClient(req, res, firstResults.html, firstResults.head);
         } else {
             sendToClient(req, res, '', {});
