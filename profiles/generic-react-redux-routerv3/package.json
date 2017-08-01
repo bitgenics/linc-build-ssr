@@ -1,6 +1,6 @@
 {
   "name": "linc-profile-generic-react-redux-routerv3",
-  "version": "3.6.0",
+  "version": "3.6.1",
   "main": "index.js",
   "repository": {},
   "license": "MIT",
@@ -11,7 +11,7 @@
     "babel-preset-react-app": "^2.2.0",
     "clean-webpack-plugin": "^0.1.16",
     "css-loader": "^0.28.1",
-    "event-collector": "^1.0.5",
+    "event-collector": "^2.0.2",
     "extract-text-webpack-plugin": "^2.1.0",
     "fake-exenv": "^1.0.0",
     "file-loader": "^0.11.1",
