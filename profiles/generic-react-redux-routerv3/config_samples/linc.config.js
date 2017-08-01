@@ -1,6 +1,7 @@
 import reducer from './reducers';
 import routes from './routes';
 import thunk from 'redux-thunk'
+import Helmet from 'react-helmet'
 
 //Have any top level css or images? Import them here
 //import './index.css';
@@ -19,7 +20,10 @@ const config = {
 	},
 	router: {
 		routes: routes	
-	}
+	},
+  head: {
+    helmet: Helmet
+  }
 };
 
 export default config
@@ -51,6 +55,9 @@ const config = (render_env) => {
     router: {
       routes: routes
     },
+    head: {
+      helmet: Helmet
+    }
     init: (env) => {
       if(render_env === 'CLIENT') {
         const onComplete = () => { console.log("Rehydrate is complete!"); };

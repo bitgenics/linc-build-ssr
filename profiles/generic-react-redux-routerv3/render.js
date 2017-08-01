@@ -5,7 +5,6 @@ import { createStore, applyMiddleware, compose } from 'redux';
 import { Provider } from 'react-redux';
 import createPromiseCounter from 'redux-promise-counter';
 import EventCollector from 'event-collector';
-import Helmet from 'react-helmet';
 import createConfig from 'linc-config-js';
 import assets from 'asset-manifest';
 
@@ -15,6 +14,8 @@ const PROFILE = packageJson.name;
 
 const config = typeof createConfig === 'function' ? createConfig('SERVER') : createConfig;
 const configMiddleware = config.redux.middleware || [];
+
+const Helmet = config.head ? config.head.helmet : {renderStatic: () => { return {} } };
 
 const ignoreMiddleware = store => next => action => {
     next({type: 'ToIgnore'});
