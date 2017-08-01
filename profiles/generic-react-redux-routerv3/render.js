@@ -206,4 +206,4 @@ const renderGet = (req, res, settings) => {
     });
 }
 
-module.exports = {renderGet}
+export {renderGet}
