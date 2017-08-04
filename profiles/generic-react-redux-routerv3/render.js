@@ -26,19 +26,17 @@ const writeInitialHead = (req, res, settings) => {
     res.statusCode = 200;
     res.setHeader('Content-Type', 'text/html');
     res.setHeader('Cache-Control', 'max-age=60');
-    res.write('<html><head>');
-    res.write('<meta charset="utf-8">');
-    res.write('<meta name="viewport" content="width=device-width, initial-scale=1">');
+    res.setHeader('Link', `</${assets['vendor.js']}>;rel=preload;as=script`);
+    res.setHeader('Link', `</${assets['main.js']}>;rel=preload;as=script`);
+    res.setHeader('Link', '<https://cdn.polyfill.io>;rel=dns-prefetch');
+    res.setHeader('Link', '<https://cdn.polyfill.io/v2/polyfill.min.js?features=default,fetch>;rel=preload;as=script');
+    res.write('<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">');
     if(assets['vendor.css']) {
         res.write(`<link rel="stylesheet" href="/${assets['vendor.css']}">`);    
     }
     if(assets['main.css']) {
         res.write(`<link rel="stylesheet" href="/${assets['main.css']}">`);    
     }
-    res.write(`<link rel="preload" as="script" href="/${assets['vendor.js']}">`);
-    res.write(`<link rel="preload" as="script" href="/${assets['main.js']}">`);
-    res.write(`<link rel="dns-prefetch" href="https://cdn.polyfill.io">`);
-    res.write(`<link rel="preload" as="script" href="https://cdn.polyfill.io/v2/polyfill.min.js?features=default,fetch">`);
     res.write(`<script>`);
         Object.keys(settings).forEach((key) => {res.write(`window.${key} = ${JSON.stringify(settings[key])};\n`)})
     res.write(`</script>`);
