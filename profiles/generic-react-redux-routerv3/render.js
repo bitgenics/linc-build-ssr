@@ -118,11 +118,11 @@ const secondRenderPass = (req, state, renderProps) => {
             </Provider>
         );
         req.eventcollector.endJob('secondRenderPass');
-        return {html, head: Helmet.rewind()};
+        return {html, head: Helmet.renderStatic()};
     } catch (e) {
         req.eventcollector.endJob('secondRenderPass');
-        env.req.eventcollector.addError(e);
-        return {html: '', head: Helmet.rewind() }
+        req.eventcollector.addError(e);
+        return {html: '', head: Helmet.renderStatic() }
     }
 }
 
