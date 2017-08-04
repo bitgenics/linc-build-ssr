@@ -147,6 +147,7 @@ module.exports = {
       React: 'react',
     }),
     new webpack.optimize.UglifyJsPlugin({
+      beautify: false,
       sourceMap: true,
       mangle: {
         screw_ie8: true,
