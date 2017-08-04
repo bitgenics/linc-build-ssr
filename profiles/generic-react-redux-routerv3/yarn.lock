@@ -1696,9 +1696,9 @@ esutils@^2.0.0, esutils@^2.0.2:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/esutils/-/esutils-2.0.2.tgz#0abf4f1caa5bcb1f7a9d8acc6dea4faaa04bac9b"
 
-event-collector@^2.0.2:
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/event-collector/-/event-collector-2.0.2.tgz#7a6fe08b7505086b54425b1c85f77436263506da"
+event-collector@^2.0.3:
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/event-collector/-/event-collector-2.0.3.tgz#f3247a767566a353d93aac65e6e37d17fe117664"
 
 event-emitter@~0.3.5:
   version "0.3.5"
