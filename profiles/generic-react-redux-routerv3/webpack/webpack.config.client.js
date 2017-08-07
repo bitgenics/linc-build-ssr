@@ -72,6 +72,17 @@ const css_loader = {
   loader: extractPlugin,
 }
 
+const babel_options = {
+  presets: [
+    ["env", {
+      "targets": {
+        "browsers": ["> 1%", "last 2 versions"]
+      }
+    }],
+    ["react"]
+  ]
+}
+
 module.exports = {
   entry: {
     'main': [path.resolve(LINC_DIR, 'client.js')]
@@ -109,7 +120,12 @@ module.exports = {
         }
       },
       { enforce: "pre", test: /\.js$/, loader: "source-map-loader" },
-      common.babel_config,
+      {
+        test: /\.js$/,
+        loader: 'babel-loader',
+        exclude: /node_modules(?!\/linc-profile-generic-react-redux-routerv3\/(render|client)\.js$)/,
+        options: babel_options
+      },
       css_loader,
       {
         test: /\.(woff|woff2|eot|ttf)$/,
@@ -171,7 +187,20 @@ module.exports = {
 
 if(common.deps.includes('typescript')) {
   url_loader_config.exclude.push(/\.(ts|tsx)$/);
-  module.exports.module.rules.push({ test: /\.tsx?$/, loader: "awesome-typescript-loader" })
+  module.exports.module.rules.push(
+    { test: /\.tsx?$/,
+      exclude: /node_modules/,
+      use: [
+        {
+          loader: 'babel-loader',
+          options: babel_options
+        },
+        {
+          loader: 'awesome-typescript-loader'
+        },
+      ]
+      
+    })
 }
 
 if(common.deps.includes('stylus')) {

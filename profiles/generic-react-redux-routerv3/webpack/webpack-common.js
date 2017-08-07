@@ -61,5 +61,5 @@ defineEnv['process.env.NODE_ENV'] = JSON.stringify('production');
 const definePlugin = new webpack.DefinePlugin(defineEnv);
 
 module.exports = {
-  LINC_DIR, PROJECT_DIR, packageJson, lincConfig, srcDir, babel_config, deps, definePlugin
+  LINC_DIR, PROJECT_DIR, packageJson, lincConfig, srcDir, deps, definePlugin
 }

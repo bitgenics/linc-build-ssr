@@ -1,6 +1,6 @@
 {
   "name": "linc-profile-generic-react-redux-routerv3",
-  "version": "3.7.1",
+  "version": "3.7.2-alpha",
   "main": "index.js",
   "repository": {},
   "license": "MIT",
@@ -8,7 +8,8 @@
     "awesome-typescript-loader": "^3.2.2",
     "babel-core": "^6.25.0",
     "babel-loader": "^7.1.1",
-    "babel-preset-react-app": "^3.0.1",
+    "babel-preset-env": "^1.6.0",
+    "babel-preset-react": "^6.24.1",
     "clean-webpack-plugin": "^0.1.16",
     "css-loader": "^0.28.4",
     "event-collector": "^2.0.3",

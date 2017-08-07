@@ -27,6 +27,17 @@ const url_loader_config = {
   }
 }
 
+const babel_options = {
+  presets: [
+    ['env', {
+      targets: {
+        node: 8
+      }
+    }],
+    ['react']
+  ]
+}
+
 const linc_exenv_path = path.resolve(LINC_DIR, 'node_modules', 'fake-exenv');
 const prj_exenv_path = path.resolve(PROJECT_DIR, 'node_modules', 'fake-exenv');
 const exenvPath = fs.existsSync(linc_exenv_path) ? linc_exenv_path : prj_exenv_path;
@@ -66,7 +77,12 @@ module.exports = {
         }
       },
       { enforce: "pre", test: /\.js$/, loader: "source-map-loader" },
-      common.babel_config,
+      {
+        test: /\.js$/,
+        loader: 'babel-loader',
+        exclude: /node_modules(?!\/linc-profile-generic-react-redux-routerv3\/(render|client)\.js$)/,
+        options: babel_options
+      },
       {
         include: /\.(css)$/,
         loader: 'ignore-loader'
@@ -104,5 +120,18 @@ module.exports = {
 
 if(common.deps.includes('typescript')) {
   url_loader_config.exclude.push(/\.(ts|tsx)$/);
-  module.exports.module.rules.push({ test: /\.tsx?$/, loader: "awesome-typescript-loader" })
+  module.exports.module.rules.push(
+    { test: /\.tsx?$/,
+      exclude: /node_modules/,
+      use: [
+        {
+          loader: 'babel-loader',
+          options: babel_options
+        },
+        {
+          loader: 'awesome-typescript-loader'
+        },
+      ]
+      
+    })
 }
