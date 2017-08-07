@@ -7,6 +7,8 @@ import Helmet from 'react-helmet'
 //import './index.css';
 
 const config = {
+  polyfills: 'default,fetch,Array.prototype.find',
+  requestExtendedUserInfo: false,
 	redux: {
 		reducer: reducer,
     //initialState: {}
@@ -23,6 +25,11 @@ const config = {
 	},
   head: {
     helmet: Helmet
+  },
+  init: (env) => {
+    //you can do any custom initialization.
+    //You have available the following objects on env:
+    //req (request), userInfo, store, config & history
   }
 };
 
