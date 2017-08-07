@@ -30,10 +30,13 @@ const writeInitialHead = (req, res, settings) => {
     res.statusCode = 200;
     res.setHeader('Content-Type', 'text/html');
     res.setHeader('Cache-Control', 'max-age=60');
-    res.setHeader('Link', `</${assets['vendor.js']}>;rel=preload;as=script`);
-    res.setHeader('Link', `</${assets['main.js']}>;rel=preload;as=script`);
-    res.setHeader('Link', '<https://cdn.polyfill.io>;rel=dns-prefetch');
-    res.setHeader('Link', '<https://cdn.polyfill.io/v2/polyfill.min.js?features=default,fetch>;rel=preload;as=script');
+    res.append('Link', `</${assets['vendor.js']}>;rel=preload;as=script`);
+    res.append('Link', `</${assets['main.js']}>;rel=preload;as=script`);
+    if(polyfillsURL) {
+        res.append('Link', '<https://cdn.polyfill.io>;rel=dns-prefetch');
+        res.append('Link', `<${polyfillsURL}>;rel=preload;as=script`);
+    }
+    
     res.write('<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">');
     if(assets['vendor.css']) {
         res.write(`<link rel="stylesheet" href="/${assets['vendor.css']}">`);    
