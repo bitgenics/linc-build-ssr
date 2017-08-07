@@ -17,6 +17,10 @@ const configMiddleware = config.redux.middleware || [];
 
 const Helmet = config.head ? config.head.helmet : {renderStatic: () => { return {} } };
 
+const polyfills_io = "https://cdn.polyfill.io/v2/polyfill.min.js?features="
+const polyfillsURL = config.polyfills ? `${polyfills_io}${config.polyfills}` : null;
+                
+
 const ignoreMiddleware = store => next => action => {
     next({type: 'ToIgnore'});
 }
@@ -135,7 +139,9 @@ const sendToClient = (req, res, html, head) => {
     });
     res.write(`<script>window.__USER_INFO__ = ${JSON.stringify(req.userInfo)};</script>`);
     res.write(`</head><body><div id="root">${html}</div>`);
-    res.write(`<script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=default,fetch"></script>`);
+    if(polyfillsURL) {
+        res.write(`<script src="${polyfillsURL}"></script>`);
+    }
     res.write(`<script src="/${assets['vendor.js']}"></script>`);
     res.write(`<script src="/${assets['main.js']}"></script>`);
     res.end('</body></html>');
