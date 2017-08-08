@@ -18,8 +18,8 @@ const configMiddleware = config.redux.middleware || [];
 const Helmet = config.head ? config.head.helmet : {renderStatic: () => { return {} } };
 
 const polyfills_io = "https://cdn.polyfill.io/v2/polyfill.min.js?features="
+const polyfills = config.polyfills.replace(' ', '');
 const polyfillsURL = config.polyfills ? `${polyfills_io}${config.polyfills}` : null;
-                
 
 const ignoreMiddleware = store => next => action => {
     next({type: 'ToIgnore'});
@@ -37,7 +37,7 @@ const writeInitialHead = (req, res, settings) => {
         res.append('Link', `<${polyfillsURL}>;rel=preload;as=script`);
     }
     
-    res.write('<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">');
+    res.write('<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">');
     if(assets['vendor.css']) {
         res.write(`<link rel="stylesheet" href="/${assets['vendor.css']}">`);    
     }
