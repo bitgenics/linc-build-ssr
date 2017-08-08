@@ -7,7 +7,7 @@ import Helmet from 'react-helmet'
 //import './index.css';
 
 const config = {
-  polyfills: 'default,fetch,Array.prototype.find',
+  polyfills: 'default,fetch,Symbol,Symbol.iterator,Array.prototype.find',
   requestExtendedUserInfo: false,
 	redux: {
 		reducer: reducer,
