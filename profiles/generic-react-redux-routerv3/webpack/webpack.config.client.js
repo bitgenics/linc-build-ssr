@@ -74,12 +74,13 @@ const css_loader = {
 
 const babel_options = {
   presets: [
-    ["env", {
+    [path.resolve(LINC_DIR, 'node_modules', 'babel-preset-env'), {
       "targets": {
         "browsers": ["> 1%", "last 2 versions"]
       }
     }],
-    ["react"]
+    [path.resolve(LINC_DIR, 'node_modules', 'babel-preset-react')],
+    [path.resolve(LINC_DIR, 'node_modules', 'babel-preset-stage-1')]
   ]
 }
 

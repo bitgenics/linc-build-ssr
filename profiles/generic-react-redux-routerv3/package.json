@@ -1,15 +1,16 @@
 {
   "name": "linc-profile-generic-react-redux-routerv3",
-  "version": "3.7.4",
+  "version": "3.8.0",
   "main": "index.js",
   "repository": {},
   "license": "MIT",
   "dependencies": {
-    "awesome-typescript-loader": "^3.2.2",
+    "awesome-typescript-loader": "^3.2.3",
     "babel-core": "^6.25.0",
     "babel-loader": "^7.1.1",
     "babel-preset-env": "^1.6.0",
     "babel-preset-react": "^6.24.1",
+    "babel-preset-stage-1": "^6.24.1",
     "clean-webpack-plugin": "^0.1.16",
     "css-loader": "^0.28.4",
     "event-collector": "^2.0.3",
@@ -26,8 +27,8 @@
     "typed-css-modules-loader": "^0.0.10",
     "typescript": "^2.4.2",
     "url-loader": "^0.5.9",
-    "webpack": "^3.4.1",
-    "webpack-manifest-plugin": "^1.2.1"
+    "webpack": "^3.5.4",
+    "webpack-manifest-plugin": "^1.3.1"
   },
   "peerDependencies": {
     "react": "^15.0.0"
