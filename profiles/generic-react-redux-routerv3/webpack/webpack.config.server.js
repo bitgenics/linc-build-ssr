@@ -29,13 +29,13 @@ const url_loader_config = {
 
 const babel_options = {
   presets: [
-    [path.resolve(LINC_DIR, 'node_modules', 'babel-preset-env'), {
+    ['env', {
       targets: {
         node: 4
       }
     }],
-    [path.resolve(LINC_DIR, 'node_modules', 'babel-preset-react')],
-    [path.resolve(LINC_DIR, 'node_modules', 'babel-preset-stage-1')]
+    ['react'],
+    ['stage-1']
   ]
 }
 
