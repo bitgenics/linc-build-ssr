@@ -18,8 +18,7 @@ const configMiddleware = config.redux.middleware || [];
 const Helmet = config.head ? config.head.helmet : {renderStatic: () => { return {} } };
 
 const polyfills_io = "https://cdn.polyfill.io/v2/polyfill.min.js?features="
-const polyfills = config.polyfills.replace(' ', '');
-const polyfillsURL = config.polyfills ? `${polyfills_io}${config.polyfills}` : null;
+const polyfillsURL = config.polyfills ? `${polyfills_io}${config.polyfills.replace(' ', '')}` : null;
 
 const ignoreMiddleware = store => next => action => {
     next({type: 'ToIgnore'});
