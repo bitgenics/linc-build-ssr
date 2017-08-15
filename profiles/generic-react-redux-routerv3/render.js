@@ -212,4 +212,6 @@ const renderGet = (req, res, settings) => {
     });
 }
 
-export {renderGet}
+const isReusable = true;
+
+export {renderGet, isReusable}
