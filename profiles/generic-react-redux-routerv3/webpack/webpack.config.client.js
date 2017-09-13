@@ -97,6 +97,9 @@ module.exports = {
     modules: [srcDir, "node_modules", path.resolve(PROJECT_DIR, "node_modules")],
     extensions: [".js", ".json", ".ts", ".tsx", ".png"]
   },
+  resolveLoader: {
+    modules: ['node_modules', path.resolve(LINC_DIR, 'node_modules')]
+  },
   output: {
     // The build folder.
     path: path.resolve(PROJECT_DIR, 'dist', 'static'),

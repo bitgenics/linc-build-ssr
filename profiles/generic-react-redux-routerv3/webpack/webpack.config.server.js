@@ -58,7 +58,9 @@ module.exports = {
     extensions: [".js", ".json", ".ts", ".tsx", ".png"],
     modules: [srcDir, "node_modules", path.resolve(PROJECT_DIR, "node_modules")],
   },
-
+  resolveLoader: {
+    modules: ['node_modules', path.resolve(LINC_DIR, 'node_modules')]
+  },
   output: {
     path: path.resolve(PROJECT_DIR, 'dist', 'static'),
     filename: '../lib/[name].js',
