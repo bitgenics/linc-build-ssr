@@ -28,7 +28,7 @@ const writeInitialHead = (req, res, settings) => {
     req.eventcollector.startJob('writeInitialHead');
     res.statusCode = 200;
     res.setHeader('Content-Type', 'text/html');
-    res.setHeader('Trailer', 'Cache-Control');
+    res.setHeader('Cache-Control', 'no-cache');
     res.append('Link', `</${assets['vendor.js']}>;rel=preload;as=script`);
     res.append('Link', `</${assets['main.js']}>;rel=preload;as=script`);
     if(polyfillsURL) {
@@ -90,8 +90,8 @@ const initEnvironment = (req, promiseCounter, callback) => {
         if(config.init ==='function') {
             config.init(env);
         }
-        callback(null, env);
         req.eventcollector.endJob('rendererInitialSetup');
+        callback(null, env);
     });
 }
 
@@ -157,11 +157,9 @@ const render200 = (req, res, renderProps, settings) => {
     const promiseCounter = createPromiseCounter((state, async) => {
         res.write(`<script>window.__INITIALSTATE__ = ${JSON.stringify(state)};</script>`);
         if(async) {
-            res.addTrailers({'Cache-Control': 'no-cache'});
             const results = secondRenderPass(req, state, renderProps);
             sendToClient(req, res, results.html, results.head);
         } else if(firstResults) {
-            res.addTrailers({'Cache-Control': 'max-age=60'});
             sendToClient(req, res, firstResults.html, firstResults.head);
         } else {
             sendToClient(req, res, '', {});
