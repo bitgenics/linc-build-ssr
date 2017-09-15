@@ -1,0 +1,19 @@
+{
+  "name": "linc-profile-universal-redux-rudy",
+  "version": "0.0.1",
+  "description": "Linc Profile for react-universal-component & redux-first-router (rudy)",
+  "main": "index.js",
+  "author": "Erwin van der Koogh (hello@bitgenics.io)",
+  "license": "MIT",
+  "dependencies": {
+    "babel-plugin-universal-import": "^1.2.7",
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-env": "^1.6.0",
+    "babel-preset-react": "^6.24.1",
+    "babel-preset-stage-1": "^6.24.1",
+    "extract-css-chunks-webpack-plugin": "^2.0.17",
+    "fetch-everywhere": "^1.0.5",
+    "stats-webpack-plugin": "^0.6.1",
+    "webpack": "^3.5.5"
+  }
+}
