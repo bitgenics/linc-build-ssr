@@ -12,7 +12,10 @@ const lincConfig = packageJson.linc || {};
 const src = lincConfig.sourceDir || 'src';
 const srcDir = path.resolve(PROJECT_DIR, src);
 
-const deps = Object.keys(packageJson.dependencies).concat(Object.keys(packageJson.devDependencies));
+const deps = Object.keys(packageJson.dependencies);
+if (packageJson.devDependencies) {
+  deps.concat(Object.keys(packageJson.devDependencies));
+}
 
 const env = lincConfig.build_env || {};
 const defineEnv = {};
