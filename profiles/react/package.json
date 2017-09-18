@@ -1,7 +1,12 @@
 {
   "name": "linc-profile-generic-react",
-  "version": "0.9.0",
-  "main": "index.js",
+  "version": "0.9.6",
+  "main": "dist/index.js",
+  "scripts": {
+    "clean": "rimraf dist",
+    "build": "npm run clean; babel src -d dist",
+    "prepublish": "npm run build"
+  },
   "repository": {},
   "license": "MIT",
   "dependencies": {
@@ -33,5 +38,9 @@
   },
   "peerDependencies": {
     "react": "^15.0.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "rimraf": "^2.6.2"
   }
 }

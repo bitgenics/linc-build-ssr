@@ -3,7 +3,7 @@ import EventCollector from 'event-collector';
 import lincConfig from 'linc-config-js';
 import assets from 'asset-manifest';
 
-const packageJson = require(__dirname + '/package.json');
+const packageJson = require(__dirname + '/../package.json');
 const VERSION = packageJson.version;
 const PROFILE = packageJson.name;
 
@@ -112,7 +112,7 @@ const renderGet = async (req, res, settings) => {
         } else if(!routeComponent) {
             return notfound(res);
         }
-        const getStatePromise = funcs.getStatePromiseFromRoute(req, config, route, routeComponent);
+        const getStatePromise = funcs.getStatePromiseFromRoute(req, config, route, routeComponent, store);
         res.statusCode = 200;
         sendInitialHeaders(res, config, assets);
         //sendHeaders(matchUrl(res, serverConfig.headers));
