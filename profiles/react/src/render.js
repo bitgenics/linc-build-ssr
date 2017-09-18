@@ -11,7 +11,6 @@ const funcs = {}
 funcs.match = require('./react-router-v3').match.fn;
 funcs.renderToString = require('./react').renderToString.fn;
 funcs.getStatePromiseFromRoute = require('./promiseCounter').getStatePromiseFromRoute.fn
-
 funcs.wrapInStoreHoC = require('./react-redux').wrapInStoreHoC.fn
 
 funcs.afterRenders = [
@@ -138,7 +137,13 @@ const renderGet = async (req, res, settings) => {
                 res.write(footer);
             }
         } else {
-            const html = state.html || await funcs.renderToString(funcs.wrapInStoreHoC(state.json, routeComponent));
+            let html;
+            if(state.html) {
+                html = state.html;
+            } else {
+                const renderComponent = funcs.wrapInStoreHoC ? funcs.wrapInStoreHoC(state.json, routeComponent) : routeComponent;
+                html = await funcs.renderToString(renderComponent);
+            }
             const { head, footer } = afterRender(config, assets);
             if(head) { res.write(head); }
             res.write(`</head><body><div id="root">${html}</div>`);
