@@ -4,7 +4,8 @@
   "main": "dist/index.js",
   "scripts": {
     "clean": "rimraf dist",
-    "build": "npm run clean; babel src -d dist",
+    "build": "npm run clean; babel src -d dist -s",
+    "dev": "npm run clean; babel src -d dist -s -w",
     "prepublish": "npm run build"
   },
   "repository": {},
