@@ -111,7 +111,7 @@ const renderGet = async (req, res, settings) => {
         } else if(!routeComponent) {
             return notfound(res);
         }
-        const getStatePromise = funcs.getStatePromiseFromRoute(req, config, route, routeComponent, store);
+        const getStatePromise = funcs.getStatePromiseFromRoute(req, config, route, routeComponent);
         res.statusCode = 200;
         sendInitialHeaders(res, config, assets);
         //sendHeaders(matchUrl(res, serverConfig.headers));
