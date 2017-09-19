@@ -40,11 +40,13 @@ const runWebpack = (config) => {
 
 const build = async (callback) => {
 	const strategy = createStrategy(getDependencies(), {});
-	await generateServerStrategy(path.resolve(PROJECT_DIR, 'dist', 'server-strategy.js'), strategy);
+	const serverStrategy = generateServerStrategy(path.resolve(PROJECT_DIR, 'dist', 'server-strategy.js'), strategy);
 	console.log('Wrote Server Strategy');
 	console.log('Creating a client package. This can take a minute or two..');
 	await runWebpack(client_config);
 	console.log('Created client package');
+	console.log('Now working on server package');
+	await serverStrategy;
 	await runWebpack(server_config);
 	console.log('Created server package');
 	callback();
