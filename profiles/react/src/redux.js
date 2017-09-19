@@ -1,12 +1,12 @@
 const configFragment = {
 	imports: [
 		`import reducer from './reducers';`,
-		`import thunk from 'redux-thunk'`
+		`//import thunk from 'redux-thunk'`
 	],
 	values: {
 		redux: {
 			reducer: {
-				example: 'reducer',
+				default: 'reducer',
 				required: true,
 				comment: 'Your root reducer'
 			},

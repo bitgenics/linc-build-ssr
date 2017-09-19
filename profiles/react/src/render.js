@@ -2,22 +2,11 @@ import { createMemoryHistory } from 'history';
 import EventCollector from 'event-collector';
 import lincConfig from 'linc-config-js';
 import assets from 'asset-manifest';
+import strategy from 'server-strategy';
 
 const packageJson = require(__dirname + '/../package.json');
 const VERSION = packageJson.version;
 const PROFILE = packageJson.name;
-
-const funcs = {}
-funcs.match = require('./react-router-v3').match.fn;
-funcs.renderToString = require('./react').renderToString.fn;
-funcs.getStatePromiseFromRoute = require('./promiseCounter').getStatePromiseFromRoute.fn
-funcs.wrapInStoreHoC = require('./react-redux').wrapInStoreHoC.fn
-
-funcs.afterRenders = [
-    (config, assets) => {
-        return {head: config.head.renderStatic() };
-    }
-]
 
 const init = (req) => {
     req.eventcollector = req.eventcollector || new EventCollector({});
@@ -91,7 +80,7 @@ const sendDynamicHead = (res, head) => {
 }
 
 const afterRender = (config, assets) => {
-    const results = funcs.afterRenders.map((fn) => fn(config));
+    const results = strategy.afterRender.map((fn) => fn(config, assets));
     const ret = results.reduce((previous, current) => {
         return {
             head: previous.head + dynamicHeadToString(current.head),
@@ -105,13 +94,13 @@ const renderGet = async (req, res, settings) => {
     try {
         const eventcollector = init(req);
         const config = createConfig(req, lincConfig);
-        const { redirectLocation, route, routeComponent } = await funcs.match(req, config);
+        const { redirectLocation, route, routeComponent } = await strategy.match(req, config);
         if(redirectLocation) {
             return redirect(res, redirectLocation);
         } else if(!routeComponent) {
             return notfound(res);
         }
-        const getStatePromise = funcs.getStatePromiseFromRoute(req, config, route, routeComponent);
+        const getStatePromise = strategy.getStatePromiseFromRoute(req, config, route, routeComponent);
         res.statusCode = 200;
         sendInitialHeaders(res, config, assets);
         //sendHeaders(matchUrl(res, serverConfig.headers));
@@ -127,11 +116,11 @@ const renderGet = async (req, res, settings) => {
             //    sendDynamicHead(res, serverConfig.renderHead(req, state.json));
             //}
         }
-        if(funcs.renderToStream ) {
+        if(strategy.renderToStream ) {
             res.write('</head><body><div id="root">');
             //stream the things
             res.write('</div>');
-            const { footer } = funcs.afterRender(config, assets);
+            const { footer } = afterRender(config, assets);
             res.write(`</head><body><div id="root">${html}</div>`);
             if(footer) { 
                 res.write(footer);
@@ -141,8 +130,8 @@ const renderGet = async (req, res, settings) => {
             if(state.html) {
                 html = state.html;
             } else {
-                const renderComponent = funcs.wrapInStoreHoC ? funcs.wrapInStoreHoC(state.json, routeComponent) : routeComponent;
-                html = await funcs.renderToString(renderComponent);
+                const renderComponent = strategy.wrapInStoreHoC ? strategy.wrapInStoreHoC(state.json, routeComponent) : routeComponent;
+                html = await strategy.renderToString(renderComponent);
             }
             const { head, footer } = afterRender(config, assets);
             if(head) { res.write(head); }
