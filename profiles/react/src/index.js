@@ -1,9 +1,9 @@
 const path = require('path');
-const fs = require('fs-extra')
 const webpack = require('webpack');
 const server_config = require('../webpack/webpack.config.server.js');
 const client_config = require('../webpack/webpack.config.client.js');
 const createStrategy = require('./strategy');
+const generateServerStrategy = require('./generateServerStrategy');
 
 const PROJECT_DIR = process.cwd();
 
@@ -27,40 +27,7 @@ const getDependencies = () => {
 	})
 }
 
-const createServerStrategyCode = (strategy) => {
-	const variableName = 'strategy';
-
-	const requires = mapValues(strategy, (value, key) => {
-		if(typeof value === 'string') {
-			const requireFile = path.resolve(__dirname, value);
-			return `${variableName}['${key}'] = require('${requireFile}').${key}.fn;`;
-		} else if (Array.isArray(value)) {
-			const requireArray = value.map((module) => {
-				const requireFile = path.resolve(__dirname, module);
-				return `require('${requireFile}').${key}.fn`
-			});
-			return `${variableName}['${key}'] = [
-${requireArray.join(',\n')}
-]`
-		}
-	});
-	const requireCode = Object.values(requires);
-	const code = `
-const ${variableName} = {};
-${requireCode.join('\n')};
-
-module.exports = ${variableName};
-	`
-	return code;
-}
-
-const writeServerStrategy = async (filename) => {
-	const strategy = createStrategy(getDependencies(), {});
-	const code = createServerStrategyCode(strategy);
-	return fs.writeFile(filename, code);
-}
-
-const runWebpack = async (config) => {
+const runWebpack = (config) => {
 	return new Promise((resolve, reject) => {
 		webpack(config, (err, stats) => {
 			if(err) return reject(err);
@@ -72,7 +39,8 @@ const runWebpack = async (config) => {
 }
 
 const build = async (callback) => {
-	await writeServerStrategy(path.resolve(PROJECT_DIR, 'dist', 'server-strategy.js'));
+	const strategy = createStrategy(getDependencies(), {});
+	await generateServerStrategy(path.resolve(PROJECT_DIR, 'dist', 'server-strategy.js'), strategy);
 	console.log('Wrote Server Strategy');
 	console.log('Creating a client package. This can take a minute or two..');
 	await runWebpack(client_config);
