@@ -36,34 +36,20 @@ const writeInitialHead = (req, res, settings) => {
     if(assets['main.css']) {
         res.write(`<link rel="stylesheet" href="/${assets['main.css']}">`);    
     }
-    res.write(`<script>`);
-        Object.keys(settings).forEach((key) => {res.write(`window.${key} = ${JSON.stringify(settings[key])};\n`)})
-    res.write(`</script>`);
+    if(settings && settings.length > 0) {
+        res.write(`<script>`);
+            Object.keys(settings).forEach((key) => {res.write(`window.${key} = ${JSON.stringify(settings[key])};\n`)})
+        res.write(`</script>`);
+    }
+    if(req.userInfo) {
+        res.write(`<script>window.__USER_INFO__ = ${JSON.stringify(req.userInfo)};</script>`);
+    }
     if(res.flush) { res.flush() }
     req.eventcollector.endJob('writeInitialHead');
 }
 
-const getUserInfo = (req, callback) => {
-    if(config.requestExtendedUserInfo) {
-        req.eventcollector.startJob('requestExtendedUserInfo');
-        fetch(`https://freegeoip.net/json/${req.ip}`).then((response) => {
-            return response.json();
-        }).then((json) => {
-            req.eventcollector.endJob('requestExtendedUserInfo');
-            callback(undefined, json);
-        }).catch((error) => {
-            req.eventcollector.endJob('requestExtendedUserInfo');
-            req.eventcollector.addError(error);
-            callback(undefined, {ip: req.ip});
-        });
-    } else {
-        callback(undefined, {ip: req.ip});
-    }
-}
-
 const sendToClient = (req, res, html) => {
     req.eventcollector.startJob('sendMainContent');
-    res.write(`<script>window.__USER_INFO__ = ${JSON.stringify(req.userInfo)};</script>`);
     res.write(`</head><body><div id="root">${html}</div>`);
     if(polyfillsURL) {
         res.write(`<script src="${polyfillsURL}"></script>`);
@@ -83,13 +69,10 @@ const renderGet = (req, res, settings) => {
     if(global.window && window.sessionStorage) window.sessionStorage.clear();
     
     writeInitialHead(req, res, settings);
-    getUserInfo(req, (err, userInfo) => {
-        req.userInfo = userInfo;
-        sendToClient(req, res, '');    
-    });
-    
+    sendToClient(req, res, '');
 }
 
 const isReusable = true;
+const doGeoLookup = () => config.requestExtendedUserInfo
 
-export {renderGet, isReusable}
+export {renderGet, isReusable, doGeoLookup}
