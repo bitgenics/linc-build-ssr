@@ -86,7 +86,7 @@ const babel_options = {
 
 module.exports = {
   entry: {
-    'main': [path.resolve(LINC_DIR, 'client.js')]
+    'main': [path.resolve(LINC_DIR, 'dist', 'client.js')]
   },
 
   resolve: {
@@ -127,7 +127,7 @@ module.exports = {
       {
         test: /\.js$/,
         loader: 'babel-loader',
-        exclude: /node_modules(?!\/linc-profile-generic-react-redux-routerv3\/(render|client)\.js$)/,
+        exclude: /node_modules(?!\/linc-profile-react-app\/dist\/(render|client)\.js$)/,
         options: babel_options
       },
       css_loader,
