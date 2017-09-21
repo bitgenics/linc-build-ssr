@@ -8,9 +8,10 @@ import createConfig from 'linc-config-js'
 
 const config = typeof createConfig === 'function' ? createConfig('CLIENT') : createConfig;
 const configMiddleware = config.redux.middleware || [];
-const serverState = (window && window.__INITIALSTATE__) || {};
+const serverState = (window && window.__INITIALSTATE__);
 const userInfo = (window && window.__USER_INFO__) || {};
-const initialState = config.redux.parseServerState ? config.redux.parseServerState(serverState) : serverState;
+const initialState = (serverState && config.redux.parseServerState) ? 
+    config.redux.parseServerState(serverState) : serverState;
 
 const enhancer = config.redux.enhancers ? 
 					compose(applyMiddleware(...configMiddleware), ...config.redux.enhancers) :
