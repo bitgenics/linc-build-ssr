@@ -8,7 +8,7 @@ import EventCollector from 'event-collector';
 import createConfig from 'linc-config-js';
 import assets from 'asset-manifest';
 
-const packageJson = require(__dirname + '/package.json');
+const packageJson = require(__dirname + '/../package.json');
 const VERSION = packageJson.version;
 const PROFILE = packageJson.name;
 

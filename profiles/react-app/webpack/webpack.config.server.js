@@ -45,7 +45,7 @@ const exenvPath = fs.existsSync(linc_exenv_path) ? linc_exenv_path : prj_exenv_p
 
 module.exports = {
   entry: {
-    'server-render': [path.resolve(LINC_DIR, 'render.js')]
+    'server-render': [path.resolve(LINC_DIR, 'dist', 'render.js')]
   },
   target: 'node',
   resolve: {
@@ -83,7 +83,7 @@ module.exports = {
       {
         test: /\.js$/,
         loader: 'babel-loader',
-        exclude: /node_modules(?!\/linc-profile-generic-react-redux-routerv3\/(render|client)\.js$)/,
+        exclude: /node_modules(?!\/linc-profile-react-app\/dist\/(render|client)\.js$)/,
         options: babel_options
       },
       {
