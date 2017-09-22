@@ -100,7 +100,7 @@ const renderGet = async (req, res, settings) => {
         } else if(!routeComponent) {
             return notfound(res);
         }
-        const getStatePromise = strategy.getStatePromiseFromRoute(req, config, route, routeComponent);
+        const getStatePromise = strategy.getStatePromise(req, config, route, routeComponent);
         res.statusCode = 200;
         sendInitialHeaders(res, config, assets);
         //sendHeaders(matchUrl(res, serverConfig.headers));

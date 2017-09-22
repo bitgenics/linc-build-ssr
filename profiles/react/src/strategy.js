@@ -42,7 +42,7 @@ const createStrategy = (deps, config) => {
 	strategy.match = pickMatch(deps, config);
 	strategy.router = strategy.match;
 	strategy.renderToString = 'react';
-	strategy.getStatePromiseFromRoute = pickStatePromise(deps, config);
+	strategy.getStatePromise = pickStatePromise(deps, config);
 	strategy.wrapInStoreHoC = pickWrapInStoreHoC(deps, config);
 	strategy.afterRender = pickafterRender(deps, config);
 	strategy.createStore = pickCreateStore(deps, config);
