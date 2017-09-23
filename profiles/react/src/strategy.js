@@ -1,6 +1,6 @@
 const semver = require('semver');
 
-const pickMatch = (deps, config) => {
+const pickRouter = (deps, config) => {
 	if(deps['react-router']) {
 		if(semver.lt(deps['react-router'], '4.0.0')) {
 			return 'react-router-v3'
@@ -33,13 +33,11 @@ const pickafterRender = (deps, config) => {
 
 const createStrategy = (deps, config) => {
 	const strategy = {}
-	strategy.match = pickMatch(deps, config);
-	strategy.router = strategy.match;
-	strategy.renderToString = 'react';
+	strategy.router = pickRouter(deps, config);
+	strategy.render = 'react';
 	strategy.getStatePromise = pickStatePromise(deps, config);
 	strategy.wrapInStoreHoC = pickWrapInStoreHoC(deps, config);
 	strategy.afterRender = pickafterRender(deps, config);
-	strategy.render = 'react';
 	return strategy;
 }
 

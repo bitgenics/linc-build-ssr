@@ -1,6 +1,6 @@
 import { match as matchRoute, RouterContext, createMemoryHistory } from 'react-router';
 
-const matchFn = (req, config) => {
+const routerFn = (req, config) => {
     return new Promise((resolve, reject) => {
         matchRoute({ routes: config.router.routes, location: req.url }, (err, redirectLocation, renderProps) => {
             if(err) { return reject(err); }
@@ -13,8 +13,8 @@ const matchFn = (req, config) => {
     });
 }
 
-const match = {
-	fn: matchFn
+const router = {
+	fn: routerFn
 }
 
-export { match };
+export { router };

@@ -1,6 +1,6 @@
 import ReactDOMServer from 'react-dom/server';
 
-const renderToStringFn = (renderComponent) => {
+const renderFn = (renderComponent) => {
     return new Promise((resolve, reject) => {
         try {
             resolve(ReactDOMServer.renderToString(renderComponent));
@@ -11,8 +11,8 @@ const renderToStringFn = (renderComponent) => {
 }
 
 
-const renderToString = {
-    fn: renderToStringFn,
+const render = {
+    fn: renderFn,
 }
 
-export { renderToString }
+export { render }

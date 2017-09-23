@@ -4,7 +4,7 @@ import createPromiseCounter from 'redux-promise-counter';
 import { createStore, applyMiddleware, compose } from 'redux';
 import { Provider } from 'react-redux';
 
-const getStatePromiseFromRouteFn = (req, config, route, routeComponent) => {
+const getStatePromiseFn = (req, config, route, routeComponent) => {
     return new Promise( async (resolve, reject) => {
         const eventcollector = req.eventcollector;
         let firstHtml;
@@ -47,8 +47,8 @@ const getStatePromiseFromRouteFn = (req, config, route, routeComponent) => {
     });
 }
 
-const getStatePromiseFromRoute = {
-	fn: getStatePromiseFromRouteFn
+const getStatePromise = {
+	fn: getStatePromiseFn
 }
 
-export { getStatePromiseFromRoute }
+export { getStatePromise }
