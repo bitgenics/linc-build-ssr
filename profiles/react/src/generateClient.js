@@ -24,7 +24,11 @@ const createClientStrategy = (strategy) => {
 		if(typeof module === 'string') {
 			clientStrategy[step] = requireLib(module);
 		} else if (Array.isArray(module)) {
-			clientStrategy[step] = module.map((name) => requireLib(name));
+			clientStrategy[step] = module.reduce((libs, name) => {
+				const lib = requireLib(name);
+				if(lib) {libs.push(lib)}
+				return libs;
+			}, []);
 		}
 	});
 	return clientStrategy;
