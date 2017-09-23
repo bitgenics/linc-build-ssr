@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs-extra');
 
-const steps = ['createStore', 'router', 'wrapInStoreHoC', 'render', 'afterRender']
+const steps = ['getStatePromise', 'router', 'wrapInStoreHoC', 'render', 'afterRender']
 
 const getImports = (libs) => {
 	const imports = ["import React from 'react'"]

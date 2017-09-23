@@ -31,12 +31,6 @@ const pickafterRender = (deps, config) => {
 	return afterRender;
 }
 
-const pickCreateStore = (deps, config) => {
-	if(deps.redux) {
-		return 'redux';
-	}
-}
-
 const createStrategy = (deps, config) => {
 	const strategy = {}
 	strategy.match = pickMatch(deps, config);
@@ -45,7 +39,6 @@ const createStrategy = (deps, config) => {
 	strategy.getStatePromise = pickStatePromise(deps, config);
 	strategy.wrapInStoreHoC = pickWrapInStoreHoC(deps, config);
 	strategy.afterRender = pickafterRender(deps, config);
-	strategy.createStore = pickCreateStore(deps, config);
 	strategy.render = 'react';
 	return strategy;
 }
