@@ -86,7 +86,7 @@ const babel_options = {
 
 module.exports = {
   entry: {
-    'main': [path.resolve(LINC_DIR, 'dist', 'client.js')]
+    'main': [path.resolve(PROJECT_DIR, 'dist', 'client.js')]
   },
 
   resolve: {

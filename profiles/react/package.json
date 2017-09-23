@@ -1,6 +1,6 @@
 {
   "name": "linc-profile-generic-react",
-  "version": "0.9.7",
+  "version": "0.9.9",
   "main": "dist/index.js",
   "scripts": {
     "clean": "rimraf dist",
