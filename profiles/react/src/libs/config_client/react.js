@@ -1,5 +1,4 @@
-const clientImportFragment = `
-import React from 'react'
+const clientImportFragment = `import React from 'react'
 import { render } from 'react-dom'`
 
 const renderFragment = (renderComponent, rootId) => `

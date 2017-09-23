@@ -35,8 +35,7 @@ const configFragment = {
 	}
 }
 
-const clientImportFragment = `
-import { createStore, applyMiddleware, compose } from 'redux'`
+const clientImportFragment = `import { createStore, applyMiddleware, compose } from 'redux'`
 
 const createStoreFragment = (store) => `
 const configMiddleware = config.redux.middleware || [];

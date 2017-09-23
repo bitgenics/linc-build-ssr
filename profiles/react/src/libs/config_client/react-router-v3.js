@@ -13,9 +13,7 @@ const configFragment = {
     }
 }
 
-const clientImportFragment = `
-import { Router } from 'react-router'
-`
+const clientImportFragment = `import { Router } from 'react-router'`
 
 const routerFragment = (routeComponent, history) => `
 const ${routeComponent} = <Router routes={config.router.routes} history={${history}} />
