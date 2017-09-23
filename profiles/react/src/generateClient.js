@@ -59,9 +59,7 @@ const createClientStrategy = (strategy) => {
 
 const createClientCode = (strategy) => {
 	const clientStrategy = createClientStrategy(strategy);
-	console.log(clientStrategy);
 	const modules = getModules(clientStrategy);
-	console.log(modules);
 	return `${getImports(modules)}
 import createHistory from 'history/createBrowserHistory'
 
