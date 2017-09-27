@@ -52,47 +52,27 @@ const writeInitialHead = (req, res, settings) => {
     req.eventcollector.endJob('writeInitialHead');
 }
 
-const getUserInfo = (req, callback) => {
-    if(config.requestExtendedUserInfo) {
-        req.eventcollector.startJob('requestExtendedUserInfo');
-        fetch(`https://freegeoip.net/json/${req.ip}`).then((response) => {
-            return response.json();
-        }).then((json) => {
-            req.eventcollector.endJob('requestExtendedUserInfo');
-            callback(undefined, json);
-        }).catch((error) => {
-            req.eventcollector.addError(error);
-            callback(undefined, {ip: req.ip});
-        });
-    } else {
-        callback(undefined, {ip: req.ip});
-    }
-}
-
 const initEnvironment = (req, promiseCounter, callback) => {
     req.eventcollector.startJob('rendererInitialSetup');
-    getUserInfo(req, (err, userInfo) => {
-        req.userInfo = userInfo;
-        const memoryHistory = createMemoryHistory(req.url);
-        const middleware = [promiseCounter].concat(configMiddleware);
-        const enhancer = config.redux.enhancers ? 
-                        compose(applyMiddleware(...middleware), ...config.redux.enhancers) :
-                        applyMiddleware(...middleware);
-        const initialState = config.redux.initialState || {}
+    const history = createMemoryHistory(req.url);
+    const middleware = [promiseCounter].concat(configMiddleware);
+    const enhancer = config.redux.enhancers ? 
+                    compose(applyMiddleware(...middleware), ...config.redux.enhancers) :
+                    applyMiddleware(...middleware);
+    const initialState = config.redux.initialState || {}
 
-        const store = createStore(
-            config.redux.reducer,
-            initialState,
-            enhancer
-        );
-        
-        const env = {req, userInfo, store, config, history: memoryHistory};
-        if(config.init ==='function') {
-            config.init(env);
-        }
-        req.eventcollector.endJob('rendererInitialSetup');
-        callback(null, env);
-    });
+    const store = createStore(
+        config.redux.reducer,
+        initialState,
+        enhancer
+    );
+    
+    const env = {req, userInfo: req.userInfo, store, config, history};
+    if(config.init ==='function') {
+        config.init(env);
+    }
+    req.eventcollector.endJob('rendererInitialSetup');
+    callback(null, env);
 }
 
 const firstRenderPass = (env, renderProps) => {
@@ -212,5 +192,6 @@ const renderGet = (req, res, settings) => {
 }
 
 const isReusable = true;
+const doGeoLookup = () => config.requestExtendedUserInfo
 
-export {renderGet, isReusable}
+export {renderGet, isReusable, doGeoLookup}
