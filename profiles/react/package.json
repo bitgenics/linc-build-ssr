@@ -3,8 +3,9 @@
   "version": "0.9.9",
   "main": "dist/index.js",
   "scripts": {
+    "lint": "eslint src test --fix",
     "clean": "rimraf dist",
-    "build": "npm run clean; babel src -d dist -s",
+    "build": "npm run clean; npm run lint; babel src -d dist -s",
     "dev": "npm run clean; babel src -d dist -s -w",
     "prepublish": "npm run build"
   },
@@ -44,6 +45,11 @@
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
+    "eslint": "^4.7.2",
+    "eslint-config-prettier": "^2.6.0",
+    "eslint-plugin-prettier": "^2.3.1",
+    "eslint-plugin-react": "^7.4.0",
+    "prettier": "^1.7.2",
     "rimraf": "^2.6.2"
   }
 }
