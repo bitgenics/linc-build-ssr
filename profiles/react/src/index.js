@@ -7,6 +7,7 @@ const generateServerStrategy = require('./generateServerStrategy')
 const generateClient = require('./generateClient')
 
 const PROJECT_DIR = process.cwd()
+const packageJson = require(path.resolve(PROJECT_DIR, 'package.json'))
 
 const mapValues = (obj, iterator) => {
   const keys = Object.keys(obj)
@@ -18,7 +19,6 @@ const mapValues = (obj, iterator) => {
 }
 
 const getDependencies = () => {
-  const packageJson = require(path.resolve(PROJECT_DIR, 'package.json'))
   const nodeModuleDir = path.resolve(PROJECT_DIR, 'node_modules')
   const deps = Object.assign(
     {},
@@ -44,7 +44,7 @@ const runWebpack = config => {
 }
 
 const build = async callback => {
-  const strategy = createStrategy(getDependencies(), {})
+  const strategy = createStrategy(getDependencies())
   await generateClient(path.resolve(PROJECT_DIR, 'dist', 'client.js'), strategy)
   const serverStrategy = generateServerStrategy(
     path.resolve(PROJECT_DIR, 'dist', 'server-strategy.js'),

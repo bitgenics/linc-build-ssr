@@ -1,6 +1,6 @@
 const semver = require('semver')
 
-const pickRouter = (deps, config) => {
+const pickRouter = deps => {
   if (deps['react-router']) {
     if (semver.lt(deps['react-router'], '4.0.0')) {
       return 'react-router-v3'
@@ -8,22 +8,26 @@ const pickRouter = (deps, config) => {
       console.log('Do not support react-routerV4 just yet')
       return 'react-router-v4'
     }
+  } else {
+    return 'config-router'
   }
 }
 
-const pickStatePromise = (deps, config) => {
+const pickStatePromise = deps => {
   if (deps['redux']) {
     return 'promiseCounter'
+  } else {
+    return 'config-state'
   }
 }
 
-const pickWrapInStoreHoC = (deps, config) => {
+const pickWrapInStoreHoC = deps => {
   if (deps['react-redux']) {
     return 'react-redux'
   }
 }
 
-const pickafterRender = (deps, config) => {
+const pickafterRender = deps => {
   const afterRender = []
   if (deps['react-helmet']) {
     afterRender.push('react-helmet')
@@ -31,14 +35,20 @@ const pickafterRender = (deps, config) => {
   return afterRender
 }
 
-const createStrategy = (deps, config) => {
-  const strategy = {}
-  strategy.router = pickRouter(deps, config)
-  strategy.render = 'react'
-  strategy.getStatePromise = pickStatePromise(deps, config)
-  strategy.wrapInStoreHoC = pickWrapInStoreHoC(deps, config)
-  strategy.afterRender = pickafterRender(deps, config)
-  return strategy
+const createStrategy = deps => {
+  try {
+    const strategy = {}
+    strategy.router = pickRouter(deps)
+    strategy.render = 'react'
+    strategy.getStatePromise = pickStatePromise(deps)
+    strategy.wrapInStoreHoC = pickWrapInStoreHoC(deps)
+    strategy.afterRender = pickafterRender(deps)
+    return strategy
+  } catch (e) {
+    console.error("We couldn't automatically figure out what plugins to use")
+    console.error(e)
+    process.exit(-1)
+  }
 }
 
 module.exports = createStrategy
