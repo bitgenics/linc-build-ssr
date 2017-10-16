@@ -27,6 +27,19 @@ const pickWrapInStoreHoC = deps => {
   }
 }
 
+const pickRenderer = deps => {
+  if (deps['react']) {
+    if (semver.lt(deps['react'], '16.0.0')) {
+      return 'react15'
+    } else {
+      return 'react16'
+    }
+  } else {
+    console.error('Only spport react in this profile');
+    process.exit(-1);
+  }
+}
+
 const pickafterRender = deps => {
   const afterRender = []
   if (deps['react-helmet']) {
@@ -39,7 +52,7 @@ const createStrategy = deps => {
   try {
     const strategy = {}
     strategy.router = pickRouter(deps)
-    strategy.render = 'react'
+    strategy.render = pickRenderer
     strategy.getStatePromise = pickStatePromise(deps)
     strategy.wrapInStoreHoC = pickWrapInStoreHoC(deps)
     strategy.afterRender = pickafterRender(deps)
