@@ -1,5 +1,5 @@
 const path = require('path')
-const fs = require('fs-extra')
+const fse = require('fs-extra')
 
 const steps = [
   'getStatePromise',
@@ -33,7 +33,9 @@ const getModules = strategy => {
 }
 
 const getImports = modules => {
-  const fragments = modules.map(module => module.clientImportFragment)
+  const fragments = modules.map(
+    module => (module ? module.clientImportFragment : '')
+  )
   return fragments.join('\n')
 }
 
@@ -68,6 +70,18 @@ const createClientStrategy = strategy => {
 const createClientCode = strategy => {
   const clientStrategy = createClientStrategy(strategy)
   const modules = getModules(clientStrategy)
+
+  let wrapHoc
+  if (clientStrategy.wrapInStoreHoC) {
+    wrapHoc = clientStrategy.wrapInStoreHoC.wrapInStoreHoCFragment(
+      'renderComponent',
+      'store',
+      'routeComponent'
+    )
+  } else {
+    wrapHoc = 'const renderComponent = routeComponent\n'
+  }
+
   return `${getImports(modules)}
 import createHistory from 'history/createBrowserHistory'
 
@@ -87,18 +101,20 @@ if(typeof config.init ==='function') {
 }
 
 ${clientStrategy.router.routerFragment('routeComponent', 'history')}
-${clientStrategy.wrapInStoreHoC.wrapInStoreHoCFragment(
-    'renderComponent',
-    'store',
-    'routeComponent'
-  )}
+${wrapHoc}
 ${clientStrategy.render.renderFragment('renderComponent', 'root')}
 	`
 }
 
-const generateClient = (filename, strategy) => {
-  const code = createClientCode(strategy)
-  return fs.writeFile(filename, code)
+const generateClient = async (filename, strategy) => {
+  try {
+    const code = createClientCode(strategy)
+    await fse.ensureFile(filename)
+    return fse.writeFile(filename, code)
+  } catch (e) {
+    console.error("Couldn't create or write the client code.")
+    console.error(e)
+  }
 }
 
 module.exports = generateClient
