@@ -117,10 +117,8 @@ const renderGet = async (req, res, settings) => {
   try {
     const eventcollector = init(req)
     const config = createConfig(req, lincConfig)
-    const { redirectLocation, route, routeComponent } = await strategy.router(
-      req,
-      config
-    )
+    const routeResult = await strategy.router(req, config)
+    const { redirectLocation, route, routeComponent } = routeResult;
     if (redirectLocation) {
       return redirect(res, redirectLocation)
     } else if (!routeComponent) {
@@ -143,7 +141,7 @@ const renderGet = async (req, res, settings) => {
       res.flush()
     }
     const state = await getStatePromise
-    if (state.json) {
+    if (state && state.json) {
       res.write(
         `<script>window.__INITIALSTATE__ = ${JSON.stringify(
           state.json
@@ -153,7 +151,7 @@ const renderGet = async (req, res, settings) => {
       //    sendDynamicHead(res, serverConfig.renderHead(req, state.json));
       //}
     }
-    if (strategy.render.isStreaming && strategy.render.isStreaming()) {
+    if (strategy.render.canStream && strategy.render.canStream()) {
       res.write('</head><body><div id="root">')
       //stream the things
       res.write('</div>')
@@ -164,7 +162,7 @@ const renderGet = async (req, res, settings) => {
       }
     } else {
       let html
-      if (state.html) {
+      if (state && state.html) {
         html = state.html
       } else {
         const renderComponent = strategy.wrapInStoreHoC
