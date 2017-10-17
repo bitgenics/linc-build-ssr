@@ -1,5 +1,5 @@
 const wrapInStoreHoCFn = (state, routeComponent) => {
-	return routeComponent;
+  return routeComponent
 }
 
 const wrapInStoreHoC = {

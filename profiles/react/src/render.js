@@ -118,7 +118,7 @@ const renderGet = async (req, res, settings) => {
     const eventcollector = init(req)
     const config = createConfig(req, lincConfig)
     const routeResult = await strategy.router(req, config)
-    const { redirectLocation, route, routeComponent } = routeResult;
+    const { redirectLocation, route, routeComponent } = routeResult
     if (redirectLocation) {
       return redirect(res, redirectLocation)
     } else if (!routeComponent) {
