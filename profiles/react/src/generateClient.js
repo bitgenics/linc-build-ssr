@@ -113,7 +113,9 @@ const generateClient = async (filename, strategy) => {
     return fse.writeFile(filename, code)
   } catch (e) {
     console.error("Couldn't create or write the client code.")
+    console.error('Strategy: ', strategy)
     console.error(e)
+    process.exit(-1)
   }
 }
 
