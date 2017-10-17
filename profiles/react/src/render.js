@@ -8,6 +8,8 @@ const packageJson = require(__dirname + '/../package.json')
 const VERSION = packageJson.version
 const PROFILE = packageJson.name
 
+const config = createConfig(req, lincConfig)
+
 const init = req => {
   req.eventcollector = req.eventcollector || new EventCollector({})
   req.eventcollector.addMeta({
@@ -116,7 +118,6 @@ const afterRender = (config, assets) => {
 const renderGet = async (req, res, settings) => {
   try {
     const eventcollector = init(req)
-    const config = createConfig(req, lincConfig)
     const routeResult = await strategy.router(req, config)
     const { redirectLocation, route, routeComponent } = routeResult
     if (redirectLocation) {
@@ -188,4 +189,6 @@ const renderGet = async (req, res, settings) => {
 
 const isReusable = true
 
-export { renderGet, isReusable }
+const doGeoLookup = () => config.requestExtendedUserInfo
+
+export { renderGet, isReusable, doGeoLookup }
