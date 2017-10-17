@@ -35,8 +35,8 @@ const pickRenderer = deps => {
       return 'react16'
     }
   } else {
-    console.error('Only spport react in this profile');
-    process.exit(-1);
+    console.error('Only support react in this profile for now')
+    process.exit(-1)
   }
 }
 
@@ -52,7 +52,7 @@ const createStrategy = deps => {
   try {
     const strategy = {}
     strategy.router = pickRouter(deps)
-    strategy.render = pickRenderer
+    strategy.render = pickRenderer(deps)
     strategy.getStatePromise = pickStatePromise(deps)
     strategy.wrapInStoreHoC = pickWrapInStoreHoC(deps)
     strategy.afterRender = pickafterRender(deps)
