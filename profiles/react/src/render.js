@@ -1,14 +1,12 @@
 import { createMemoryHistory } from 'history'
 import EventCollector from 'event-collector'
-import lincConfig from 'linc-config-js'
+import createConfig from 'linc-config-js'
 import assets from 'asset-manifest'
 import strategy from 'server-strategy'
 
 const packageJson = require(__dirname + '/../package.json')
 const VERSION = packageJson.version
 const PROFILE = packageJson.name
-
-const config = createConfig(req, lincConfig)
 
 const init = req => {
   req.eventcollector = req.eventcollector || new EventCollector({})
@@ -23,11 +21,13 @@ const init = req => {
   return req.eventcollector
 }
 
-const createConfig = (req, lincConfig) => {
-  return typeof lincConfig === 'function'
-    ? createConfig('SERVER', req)
-    : lincConfig
-}
+const config =
+  typeof createConfig === 'function' ? createConfig('SERVER') : createConfig
+
+const polyfills_io = 'https://cdn.polyfill.io/v2/polyfill.min.js?features='
+const polyfillsURL = config.polyfills
+  ? `${polyfills_io}${config.polyfills.replace(' ', '')}`
+  : null
 
 const redirect = (res, redirectLocation) => {
   res.statusCode = 302
@@ -40,11 +40,7 @@ const notfound = res => {
   res.end()
 }
 
-const sendInitialHeaders = (res, config, assets) => {
-  const polyfills_io = 'https://cdn.polyfill.io/v2/polyfill.min.js?features='
-  const polyfillsURL = config.polyfills
-    ? `${polyfills_io}${config.polyfills.replace(' ', '')}`
-    : null
+const sendInitialHeaders = (res, assets) => {
   res.setHeader('Content-Type', 'text/html')
   if (assets['bootstrap.js']) {
     res.append('Link', `</${assets['bootstrap.js']}>;rel=preload;as=script`)
@@ -101,7 +97,7 @@ const sendDynamicHead = (res, head) => {
   res.write(dynamicHeadToString(head))
 }
 
-const afterRender = (config, assets) => {
+const afterRender = assets => {
   const results = strategy.afterRender.map(fn => fn(config, assets))
   const ret = results.reduce(
     (previous, current) => {
@@ -132,7 +128,7 @@ const renderGet = async (req, res, settings) => {
       routeComponent
     )
     res.statusCode = 200
-    sendInitialHeaders(res, config, assets)
+    sendInitialHeaders(res, assets)
     //sendHeaders(matchUrl(res, serverConfig.headers));
     res.write('<!DOCTYPE html><html><head>')
     //sendStaticHead(res, serverConfig.staticHead);
@@ -152,11 +148,18 @@ const renderGet = async (req, res, settings) => {
       //    sendDynamicHead(res, serverConfig.renderHead(req, state.json));
       //}
     }
+    if (req.userInfo) {
+      res.write(
+        `<script>window.__USER_INFO__ = ${JSON.stringify(
+          req.userInfo
+        )};</script>`
+      )
+    }
     if (strategy.render.canStream && strategy.render.canStream()) {
       res.write('</head><body><div id="root">')
       //stream the things
       res.write('</div>')
-      const { footer } = afterRender(config, assets)
+      const { footer } = afterRender(assets)
       res.write(`</head><body><div id="root">${html}</div>`)
       if (footer) {
         res.write(footer)
@@ -171,7 +174,7 @@ const renderGet = async (req, res, settings) => {
           : routeComponent
         html = await strategy.render(renderComponent)
       }
-      const { head, footer } = afterRender(config, assets)
+      const { head, footer } = afterRender(assets)
       if (head) {
         res.write(head)
       }

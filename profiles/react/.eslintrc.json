@@ -21,8 +21,7 @@
   },
   "rules": {
     "prettier/prettier": ["error", {
-      "singleQuote": true, 
-      "semi": false, 
+      "semi": false,
       "singleQuote": true, 
       "jsxBracketSameLine": true
     }]
