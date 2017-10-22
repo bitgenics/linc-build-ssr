@@ -121,21 +121,3 @@ module.exports = {
   // 'eval' | 'cheap-eval-source-map' | 'cheap-module-eval-source-map' | 'eval-source-map'
   devtool: 'source-map'
 };
-
-if(common.deps.includes('typescript')) {
-  url_loader_config.exclude.push(/\.(ts|tsx)$/);
-  module.exports.module.rules.push(
-    { test: /\.tsx?$/,
-      exclude: /node_modules/,
-      use: [
-        {
-          loader: 'babel-loader',
-          options: babel_options
-        },
-        {
-          loader: 'awesome-typescript-loader'
-        },
-      ]
-      
-    })
-}

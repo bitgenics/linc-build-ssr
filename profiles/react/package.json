@@ -29,15 +29,10 @@
     "redux-promise-counter": "^1.2.1",
     "semver": "^5.4.1",
     "source-map-loader": "^0.2.1",
-    "style-loader": "^0.18.2",
     "svg-url-loader": "^2.1.1",
-    "typed-css-modules-loader": "^0.0.10",
     "url-loader": "^0.5.9",
     "webpack": "^3.5.4",
     "webpack-manifest-plugin": "^1.3.1"
-  },
-  "peerDependencies": {
-    "react": "^15.0.0"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
