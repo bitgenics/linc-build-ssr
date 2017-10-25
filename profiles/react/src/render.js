@@ -73,6 +73,9 @@ const sendHeadAssets = (res, assets) => {
 }
 
 const sendSettings = (res, settings) => {
+  // Prevent an empty <script> tag in the rendered HTML
+  if (!Object.keys(settings).length) return
+
   res.write(`<script>`)
   Object.keys(settings).forEach(key => {
     res.write(`window.${key} = ${JSON.stringify(settings[key])};\n`)
