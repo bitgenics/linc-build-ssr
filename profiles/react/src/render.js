@@ -42,21 +42,21 @@ const notfound = res => {
 
 const sendIncludes = (res, url) => {
   let type
-  const result = url.match(extRegex);
+  const result = url.match(extRegex)
   const ext = result ? result[1] : null
   switch (ext) {
     case 'js':
       type = 'application/javascript'
-      break;
+      break
     case 'txt':
       type = 'text/plain'
-      break;
+      break
   }
 
-  if(type) {
-    res.setHeader('Content-Type', type);
+  if (type) {
+    res.setHeader('Content-Type', type)
   }
-  const include = includes(url);
+  const include = includes(url)
   res.send(include)
 }
 
@@ -138,7 +138,7 @@ const renderGet = async (req, res, settings) => {
   try {
     const eventcollector = init(req)
     const url = req.url
-    if(url.length > 1 && !(url.lastIndexOf('/') > 1) && includes(url)) {
+    if (url.length > 1 && !(url.lastIndexOf('/') > 1) && includes(url)) {
       return sendIncludes(res, url)
     }
     req.eventcollector.startJob('rendering')
@@ -211,7 +211,6 @@ const renderGet = async (req, res, settings) => {
       }
     }
     res.write(`<script src="${polyfillsURL}"></script>`)
-    res.write(`<script src="${assets['vendor.js']}"></script>`)
     res.write(`<script src="${assets['vendor.js']}"></script>`)
     res.write(`<script src="${assets['main.js']}"></script>`)
     res.write('</body></html>')

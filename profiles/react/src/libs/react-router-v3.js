@@ -13,11 +13,13 @@ const routerFn = (req, config) => {
         if (err) {
           return reject(err)
         }
-        const routeComponent = renderProps ? <RouterContext {...renderProps} /> : null
+        const routeComponent = renderProps ? (
+          <RouterContext {...renderProps} />
+        ) : null
         resolve({
           redirectLocation,
           route: renderProps,
-          routeComponent 
+          routeComponent
         })
       }
     )
