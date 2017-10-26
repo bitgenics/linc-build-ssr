@@ -27,7 +27,8 @@ ${requireArray.join(',\n')}
 ]`
     }
   })
-  const requireCode = Object.values(requires)
+
+  const requireCode = Object.keys(requires).map(e => requires[e])
   const code = `
 const ${variableName} = {};
 ${requireCode.join('\n')};
