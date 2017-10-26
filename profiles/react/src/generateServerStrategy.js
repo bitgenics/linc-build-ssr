@@ -32,6 +32,7 @@ ${requireArray.join(',\n')}
   const code = `
 const ${variableName} = {};
 ${requireCode.join('\n')};
+${variableName}.strategy = ${JSON.stringify(strategy)}
 
 module.exports = ${variableName};
 	`

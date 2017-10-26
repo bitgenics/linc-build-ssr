@@ -137,11 +137,13 @@ const afterRender = assets => {
 const renderGet = async (req, res, settings) => {
   try {
     const eventcollector = init(req)
+    const getJob = eventcollector.startJob('renderGet')
     const url = req.url
     if (url.length > 1 && !(url.lastIndexOf('/') > 1) && includes(url)) {
       return sendIncludes(res, url)
     }
-    req.eventcollector.startJob('rendering')
+    eventcollector.addMeta({ strategy: strategy.strategy })
+    const routeJob = eventcollector.startJob('routing')
     const routeResult = await strategy.router(req, config)
     const { redirectLocation, route, routeComponent } = routeResult
     if (redirectLocation) {
@@ -149,6 +151,8 @@ const renderGet = async (req, res, settings) => {
     } else if (!routeComponent) {
       return notfound(res)
     }
+    eventcollector.endJob(routeJob)
+    const stateJob = req.eventcollector.startJob('getState')
     const getStatePromise = strategy.getStatePromise(
       req,
       config,
@@ -165,6 +169,8 @@ const renderGet = async (req, res, settings) => {
     if (res.flush) {
       res.flush()
     }
+    eventcollector.endJob(stateJob)
+
     const state = await getStatePromise
     if (state && state.json) {
       res.write(
@@ -183,7 +189,10 @@ const renderGet = async (req, res, settings) => {
         )};</script>`
       )
     }
+    const renderJob = eventcollector.startJob('render')
+    let renderMethod
     if (strategy.render.canStream && strategy.render.canStream()) {
+      renderMethod = 'renderToStream'
       res.write('</head><body><div id="root">')
       //stream the things
       res.write('</div>')
@@ -194,8 +203,10 @@ const renderGet = async (req, res, settings) => {
     } else {
       let html
       if (state && state.html) {
+        renderMethod = 'static'
         html = state.html
       } else {
+        renderMethod = 'renderToString'
         const renderComponent = strategy.wrapInStoreHoC
           ? strategy.wrapInStoreHoC(state.json, routeComponent)
           : routeComponent
@@ -210,13 +221,18 @@ const renderGet = async (req, res, settings) => {
         res.write(footer)
       }
     }
+    eventcollector.endJob(renderJob, { renderMethod })
+
     res.write(`<script src="${polyfillsURL}"></script>`)
     res.write(`<script src="${assets['vendor.js']}"></script>`)
     res.write(`<script src="${assets['main.js']}"></script>`)
     res.write('</body></html>')
     res.end()
+    eventcollector.endJob(getJob)
   } catch (e) {
     console.log('Uhoh!', e)
+    req.eventcollector.addError(e)
+    req.eventcollector.endJob(getJob)
   }
 }
 
