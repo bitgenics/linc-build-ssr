@@ -134,6 +134,32 @@ const afterRender = assets => {
   return ret
 }
 
+const renderToString = async (res) => {
+  let html
+  if (state && state.html) {
+    renderMethod = 'static'
+    html = state.html
+  } else {
+    renderMethod = 'renderToString'
+    const renderComponent = strategy.wrapInStoreHoC
+      ? strategy.wrapInStoreHoC(state.json, routeComponent)
+      : routeComponent
+    html = await strategy.render(renderComponent)
+  }
+  const { head, footer } = afterRender(assets)
+  if (head) {
+    res.write(head)
+  }
+  res.write(`</head><body><div id="root">${html}</div>`)
+  if (footer) {
+    res.write(footer)
+  }
+}
+
+const renderToStream = async (res) => {
+  console.log('Not Yet Implemented')
+}
+
 const renderGet = async (req, res, settings) => {
   try {
     const eventcollector = init(req)
@@ -192,34 +218,9 @@ const renderGet = async (req, res, settings) => {
     const renderJob = eventcollector.startJob('render')
     let renderMethod
     if (strategy.render.canStream && strategy.render.canStream()) {
-      renderMethod = 'renderToStream'
-      res.write('</head><body><div id="root">')
-      //stream the things
-      res.write('</div>')
-      const { footer } = afterRender(assets)
-      if (footer) {
-        res.write(footer)
-      }
+      renderMethod = await renderToStream(res)
     } else {
-      let html
-      if (state && state.html) {
-        renderMethod = 'static'
-        html = state.html
-      } else {
-        renderMethod = 'renderToString'
-        const renderComponent = strategy.wrapInStoreHoC
-          ? strategy.wrapInStoreHoC(state.json, routeComponent)
-          : routeComponent
-        html = await strategy.render(renderComponent)
-      }
-      const { head, footer } = afterRender(assets)
-      if (head) {
-        res.write(head)
-      }
-      res.write(`</head><body><div id="root">${html}</div>`)
-      if (footer) {
-        res.write(footer)
-      }
+      renderMethod = await renderToString(res)
     }
     eventcollector.endJob(renderJob, { renderMethod })
 
