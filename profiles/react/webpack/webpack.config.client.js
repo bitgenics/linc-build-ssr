@@ -2,10 +2,12 @@ const path = require('path');
 const webpack = require('webpack');
 const ExtractTextPlugin = require("extract-text-webpack-plugin");
 const ManifestPlugin = require('webpack-manifest-plugin');
+const workboxPlugin = require('workbox-webpack-plugin');
 const common = require('./webpack-common.js');
 
 const LINC_DIR = common.LINC_DIR;
 const PROJECT_DIR = common.PROJECT_DIR;
+const DIST_DIR = path.resolve(PROJECT_DIR, 'dist');
 
 const srcDir = common.srcDir;
 
@@ -86,7 +88,7 @@ const babel_options = {
 
 module.exports = {
   entry: {
-    'main': [path.resolve(PROJECT_DIR, 'dist', 'client.js')]
+    'main': [path.resolve(DIST_DIR, 'client.js')]
   },
 
   resolve: {
@@ -102,7 +104,7 @@ module.exports = {
   },
   output: {
     // The build folder.
-    path: path.resolve(PROJECT_DIR, 'dist', 'static'),
+    path: path.resolve(DIST_DIR, 'static'),
     // Generated JS file names (with nested folders).
     // There will be one main bundle, and one file per asynchronous chunk.
     // We don't currently advertise code splitting but Webpack supports it.
@@ -165,6 +167,13 @@ module.exports = {
     }),
     new webpack.ProvidePlugin({
       React: 'react',
+    }),
+    new workboxPlugin({
+      globDirectory: path.resolve(DIST_DIR, 'static'),
+      globPatterns: ['**/*.{html,js,css,png,svg}'],
+      globIgnores: '_errors/**',
+      swDest: path.join(DIST_DIR, 'lib', 'includes', 'serviceworker.js'),
+      dontCacheBustUrlsMatching: /\.\w{8}\./,
     }),
     new webpack.optimize.UglifyJsPlugin({
       beautify: false,

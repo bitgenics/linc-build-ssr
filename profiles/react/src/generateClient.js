@@ -83,19 +83,17 @@ const createClientCode = strategy => {
   }
 
   return `${getImports(modules)}
-import createHistory from 'history/createBrowserHistory'
 
 import createConfig from 'linc-config-js'
 
 const config = typeof createConfig === 'function' ? createConfig('CLIENT') : createConfig;
-const history = createHistory();
 
 const serverState = (window && window.__INITIALSTATE__);
-const initialState = config.state.parseServerState ? config.state.parseServerState(serverState) : serverState;
+const initialState = config.state && config.state.parseServerState ? config.state.parseServerState(serverState) : serverState;
 const userInfo = (window && window.__USER_INFO__) || {};
 
 ${clientStrategy.getStatePromise.createStoreFragment('store', 'initialState')}
-const env = {store, userInfo, config, history};
+const env = {store, userInfo, config};
 if(typeof config.init ==='function') {
     config.init(env);
 }
@@ -103,6 +101,17 @@ if(typeof config.init ==='function') {
 ${clientStrategy.router.routerFragment('routeComponent', 'history')}
 ${wrapHoc}
 ${clientStrategy.render.renderFragment('renderComponent', 'root')}
+
+if (!config.serviceworker && 'serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/serviceworker.js')
+  .then(function(reg) {
+    // registration worked
+    console.log('Registration succeeded. Scope is ' + reg.scope);
+  }).catch(function(error) {
+    // registration failed
+    console.log('Registration failed with ' + error);
+  });
+}
 	`
 }
 

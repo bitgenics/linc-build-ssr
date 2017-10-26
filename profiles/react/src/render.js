@@ -1,12 +1,14 @@
-import { createMemoryHistory } from 'history'
 import EventCollector from 'event-collector'
 import createConfig from 'linc-config-js'
 import assets from 'asset-manifest'
 import strategy from 'server-strategy'
+import includes from 'includes'
 
 const packageJson = require(__dirname + '/../package.json')
 const VERSION = packageJson.version
 const PROFILE = packageJson.name
+
+const extRegex = /.*?\.(\w*)$/
 
 const init = req => {
   req.eventcollector = req.eventcollector || new EventCollector({})
@@ -14,10 +16,8 @@ const init = req => {
     rendererVersion: VERSION,
     renderProfile: PROFILE
   })
-  req.eventcollector.startJob('rendering')
   if (global.window && window.localStorage) window.localStorage.clear()
   if (global.window && window.sessionStorage) window.sessionStorage.clear()
-  req.history = createMemoryHistory(req.url)
   return req.eventcollector
 }
 
@@ -38,6 +38,26 @@ const redirect = (res, redirectLocation) => {
 const notfound = res => {
   res.statusCode = 404
   res.end()
+}
+
+const sendIncludes = (res, url) => {
+  let type
+  const result = url.match(extRegex);
+  const ext = result ? result[1] : null
+  switch (ext) {
+    case 'js':
+      type = 'application/javascript'
+      break;
+    case 'txt':
+      type = 'text/plain'
+      break;
+  }
+
+  if(type) {
+    res.setHeader('Content-Type', type);
+  }
+  const include = includes(url);
+  res.send(include)
 }
 
 const sendInitialHeaders = (res, assets) => {
@@ -117,6 +137,11 @@ const afterRender = assets => {
 const renderGet = async (req, res, settings) => {
   try {
     const eventcollector = init(req)
+    const url = req.url
+    if(url.length > 1 && !(url.lastIndexOf('/') > 1) && includes(url)) {
+      return sendIncludes(res, url)
+    }
+    req.eventcollector.startJob('rendering')
     const routeResult = await strategy.router(req, config)
     const { redirectLocation, route, routeComponent } = routeResult
     if (redirectLocation) {
@@ -163,7 +188,6 @@ const renderGet = async (req, res, settings) => {
       //stream the things
       res.write('</div>')
       const { footer } = afterRender(assets)
-      res.write(`</head><body><div id="root">${html}</div>`)
       if (footer) {
         res.write(footer)
       }
@@ -186,6 +210,10 @@ const renderGet = async (req, res, settings) => {
         res.write(footer)
       }
     }
+    res.write(`<script src="${polyfillsURL}"></script>`)
+    res.write(`<script src="${assets['vendor.js']}"></script>`)
+    res.write(`<script src="${assets['vendor.js']}"></script>`)
+    res.write(`<script src="${assets['main.js']}"></script>`)
     res.write('</body></html>')
     res.end()
   } catch (e) {

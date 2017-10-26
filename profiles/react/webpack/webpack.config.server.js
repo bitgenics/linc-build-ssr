@@ -5,6 +5,8 @@ const common = require('./webpack-common.js');
 
 const LINC_DIR = common.LINC_DIR;
 const PROJECT_DIR = common.PROJECT_DIR;
+const DIST_DIR = path.resolve(PROJECT_DIR, 'dist');
+const LIB_DIR = path.resolve(DIST_DIR, 'lib');
 
 const srcDir = common.srcDir;
 
@@ -52,8 +54,9 @@ module.exports = {
     alias: {
       'linc-config-js': path.resolve(PROJECT_DIR, srcDir, 'linc.config.js'),
       'linc-server-config-js': path.resolve(PROJECT_DIR, srcDir, 'linc.server.config.js'),
-      'asset-manifest': path.resolve(PROJECT_DIR, 'dist', 'lib','asset-manifest.json'),
-      'server-strategy': path.resolve(PROJECT_DIR, 'dist','server-strategy.js'),
+      'asset-manifest': path.resolve(LIB_DIR,'asset-manifest.json'),
+      'server-strategy': path.resolve(DIST_DIR,'server-strategy.js'),
+      'includes': path.resolve(LIB_DIR, 'includes.js'),
       'exenv': exenvPath
     },
     extensions: [".js", ".json", ".ts", ".tsx", ".png"],

@@ -5,8 +5,11 @@ const client_config = require('../webpack/webpack.config.client.js')
 const createStrategy = require('./strategy')
 const generateServerStrategy = require('./generateServerStrategy')
 const generateClient = require('./generateClient')
+const generateIncludes = require('./generateIncludes')
 
 const PROJECT_DIR = process.cwd()
+const DIST_DIR = path.resolve(PROJECT_DIR, 'dist')
+const LIB_DIR = path.resolve(DIST_DIR, 'lib')
 const packageJson = require(path.resolve(PROJECT_DIR, 'package.json'))
 
 const mapValues = (obj, iterator) => {
@@ -45,14 +48,20 @@ const runWebpack = config => {
 
 const build = async callback => {
   const strategy = createStrategy(getDependencies())
-  await generateClient(path.resolve(PROJECT_DIR, 'dist', 'client.js'), strategy)
+  await generateClient(path.resolve(DIST_DIR, 'client.js'), strategy)
   const serverStrategy = generateServerStrategy(
-    path.resolve(PROJECT_DIR, 'dist', 'server-strategy.js'),
+    path.resolve(DIST_DIR, 'server-strategy.js'),
     strategy
   )
   console.log('Creating a client package. This can take a minute or two..')
   await runWebpack(client_config)
   console.log('Created client package')
+
+  await generateIncludes(
+    path.resolve(LIB_DIR, 'includes.js'),
+    path.resolve(LIB_DIR, 'includes')
+  )
+
   console.log('Now working on server package')
   await serverStrategy
   await runWebpack(server_config)
