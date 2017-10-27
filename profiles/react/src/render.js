@@ -231,8 +231,9 @@ const renderGet = async (req, res, settings) => {
     if(polyfillsURL) {
       res.write(`<script src="${polyfillsURL}"></script>`)
     }
-    res.write(`<script src="${assets['vendor.js']}"></script>`)
-    res.write(`<script src="${assets['main.js']}"></script>`)
+    res.write(`<script src="/${assets['vendor.js']}"></script>`)
+    res.write(`<script src="/${assets['main.js']}"></script>`)
+    sendConfigTrailer(req, state, res)
     res.write('</body></html>')
     res.end()
     eventcollector.endJob(getJob)
