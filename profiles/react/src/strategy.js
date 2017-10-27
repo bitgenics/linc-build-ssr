@@ -8,6 +8,8 @@ const pickRouter = deps => {
       console.log('Do not support react-routerV4 just yet')
       return 'react-router-v4'
     }
+  } else if (deps['react-router-dom']) {
+    return 'react-router-v4'
   } else {
     return 'config-router'
   }
