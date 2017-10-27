@@ -137,7 +137,7 @@ module.exports = {
         test: /\.(woff|woff2|eot|ttf)$/,
         loader: 'file-loader',
         options: {
-          name: '_assets/fonts/[name].[ext]'
+          name: '_assets/fonts/[name].[hash:8].[ext]'
         }
       }
     ]
