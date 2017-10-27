@@ -4,10 +4,6 @@ import assets from 'asset-manifest'
 import strategy from 'server-strategy'
 import includes from 'includes'
 
-const packageJson = require(__dirname + '/../package.json')
-const VERSION = packageJson.version
-const PROFILE = packageJson.name
-
 const extRegex = /.*?\.(\w*)$/
 
 const clientConfig =
@@ -19,12 +15,12 @@ const polyfillsURL = config.polyfills
   ? `${polyfills_io}${config.polyfills.replace(' ', '')}`
   : null
 
-
 const init = req => {
+  const packageJson = require(__dirname + '/../package.json')
   req.eventcollector = req.eventcollector || new EventCollector({})
   req.eventcollector.addMeta({
-    rendererVersion: VERSION,
-    renderProfile: PROFILE
+    rendererVersion: packageJson.version,
+    renderProfile: packageJson.name
   })
   if (global.window && window.localStorage) window.localStorage.clear()
   if (global.window && window.sessionStorage) window.sessionStorage.clear()
