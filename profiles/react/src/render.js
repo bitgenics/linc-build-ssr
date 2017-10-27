@@ -10,6 +10,16 @@ const PROFILE = packageJson.name
 
 const extRegex = /.*?\.(\w*)$/
 
+const clientConfig =
+  typeof createConfig === 'function' ? createConfig('SERVER') : createConfig
+const config = Object.assign({}, clientConfig, serverConfig)
+
+const polyfills_io = 'https://cdn.polyfill.io/v2/polyfill.min.js?features='
+const polyfillsURL = config.polyfills
+  ? `${polyfills_io}${config.polyfills.replace(' ', '')}`
+  : null
+
+
 const init = req => {
   req.eventcollector = req.eventcollector || new EventCollector({})
   req.eventcollector.addMeta({
@@ -20,14 +30,6 @@ const init = req => {
   if (global.window && window.sessionStorage) window.sessionStorage.clear()
   return req.eventcollector
 }
-
-const config =
-  typeof createConfig === 'function' ? createConfig('SERVER') : createConfig
-
-const polyfills_io = 'https://cdn.polyfill.io/v2/polyfill.min.js?features='
-const polyfillsURL = config.polyfills
-  ? `${polyfills_io}${config.polyfills.replace(' ', '')}`
-  : null
 
 const redirect = (res, redirectLocation) => {
   res.statusCode = 302
@@ -134,18 +136,7 @@ const afterRender = assets => {
   return ret
 }
 
-const renderToString = async (res) => {
-  let html
-  if (state && state.html) {
-    renderMethod = 'static'
-    html = state.html
-  } else {
-    renderMethod = 'renderToString'
-    const renderComponent = strategy.wrapInStoreHoC
-      ? strategy.wrapInStoreHoC(state.json, routeComponent)
-      : routeComponent
-    html = await strategy.render(renderComponent)
-  }
+const renderHTML = (html, res) => {
   const { head, footer } = afterRender(assets)
   if (head) {
     res.write(head)
@@ -156,8 +147,33 @@ const renderToString = async (res) => {
   }
 }
 
-const renderToStream = async (res) => {
+const renderToString = async (routeComponent, state, res) => {
+  const renderComponent = strategy.wrapInStoreHoC && state.json
+    ? strategy.wrapInStoreHoC(state.json, routeComponent)
+    : routeComponent
+  const html = await strategy.render(renderComponent)
+  renderHTML(html, res)
+}
+
+const renderToStream = async (routeComponent, res) => {
   console.log('Not Yet Implemented')
+}
+
+const sendState(req, state, res) => {
+  if (state.json) {
+    res.write(
+      `<script>window.__INITIALSTATE__ = ${JSON.stringify(
+        state.json
+      )};</script>`
+    )
+  }
+  if (req.userInfo) {
+    res.write(
+      `<script>window.__USER_INFO__ = ${JSON.stringify(
+        req.userInfo
+      )};</script>`
+    )
+  }
 }
 
 const renderGet = async (req, res, settings) => {
@@ -166,6 +182,7 @@ const renderGet = async (req, res, settings) => {
     const getJob = eventcollector.startJob('renderGet')
     const url = req.url
     if (url.length > 1 && !(url.lastIndexOf('/') > 1) && includes(url)) {
+      eventcollector.endJob(getJob)
       return sendIncludes(res, url)
     }
     eventcollector.addMeta({ strategy: strategy.strategy })
@@ -187,44 +204,33 @@ const renderGet = async (req, res, settings) => {
     )
     res.statusCode = 200
     sendInitialHeaders(res, assets)
-    //sendHeaders(matchUrl(res, serverConfig.headers));
     res.write('<!DOCTYPE html><html><head>')
-    //sendStaticHead(res, serverConfig.staticHead);
     sendHeadAssets(res, assets)
     sendSettings(res, settings)
     if (res.flush) {
       res.flush()
     }
+    
+    const state = await getStatePromise || {}
     eventcollector.endJob(stateJob)
-
-    const state = await getStatePromise
-    if (state && state.json) {
-      res.write(
-        `<script>window.__INITIALSTATE__ = ${JSON.stringify(
-          state.json
-        )};</script>`
-      )
-      //if(serverConfig.renderHead) {
-      //    sendDynamicHead(res, serverConfig.renderHead(req, state.json));
-      //}
-    }
-    if (req.userInfo) {
-      res.write(
-        `<script>window.__USER_INFO__ = ${JSON.stringify(
-          req.userInfo
-        )};</script>`
-      )
-    }
+    sendState(req, state, res)
     const renderJob = eventcollector.startJob('render')
     let renderMethod
-    if (strategy.render.canStream && strategy.render.canStream()) {
-      renderMethod = await renderToStream(res)
+    if(state.html) {
+      renderMethod = 'static'
+      renderHTML(state.html, res)
+    } else if (strategy.render.canStream && strategy.render.canStream()) {
+      renderMethod = 'renderToStream'
+      await renderToStream(routeComponent, state, res)
     } else {
-      renderMethod = await renderToString(res)
+      renderMethod = 'renderToString'
+      await renderToString(routeComponent, state, res)
     }
     eventcollector.endJob(renderJob, { renderMethod })
 
-    res.write(`<script src="${polyfillsURL}"></script>`)
+    if(polyfillsURL) {
+      res.write(`<script src="${polyfillsURL}"></script>`)
+    }
     res.write(`<script src="${assets['vendor.js']}"></script>`)
     res.write(`<script src="${assets['main.js']}"></script>`)
     res.write('</body></html>')
@@ -233,7 +239,6 @@ const renderGet = async (req, res, settings) => {
   } catch (e) {
     console.log('Uhoh!', e)
     req.eventcollector.addError(e)
-    req.eventcollector.endJob(getJob)
   }
 }
 
