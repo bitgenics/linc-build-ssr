@@ -124,22 +124,22 @@ const afterRender = assets => {
     (previous, current) => {
       return {
         head: previous.head + dynamicHeadToString(current.head),
-        footer: previous.footer + (current.footer || '')
+        trailer: previous.trailer + (current.trailer || '')
       }
     },
-    { head: '', footer: '' }
+    { head: '', trailer: '' }
   )
   return ret
 }
 
 const renderHTML = (html, res) => {
-  const { head, footer } = afterRender(assets)
+  const { head, trailer } = afterRender(assets)
   if (head) {
     res.write(head)
   }
   res.write(`</head><body><div id="root">${html}</div>`)
-  if (footer) {
-    res.write(footer)
+  if (trailer) {
+    res.write(trailer)
   }
 }
 
