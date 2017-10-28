@@ -8,7 +8,19 @@ const extRegex = /.*?\.(\w*)$/
 
 const clientConfig =
   typeof createConfig === 'function' ? createConfig('SERVER') : createConfig
+let serverConfig = {}
+try {
+  serverConfig = require('linc-server-config-js')
+  serverConfig = serverConfig.default ? serverConfig.default : serverConfig
+} catch (e) {
+  if(e.message.includes('Cannot find module "linc-server-config-js')) {
+    console.log("Couldn't find any server-only configuration: 'linc.server.config.js'")
+  } else {
+    console.log('Error loading linc.server.config.js', e)
+  }
+}
 const config = Object.assign({}, clientConfig, serverConfig)
+console.log('Config', config)
 
 const polyfills_io = 'https://cdn.polyfill.io/v2/polyfill.min.js?features='
 const polyfillsURL = config.polyfills
@@ -118,6 +130,24 @@ const sendDynamicHead = (res, head) => {
   res.write(dynamicHeadToString(head))
 }
 
+const sendConfigStaticHead = (req, res) => {
+  if(config.getStaticHead) {
+    res.write(config.getStaticHead(req))
+  }
+}
+
+const sendConfigDynamicHead = (req, state, res) => {
+  if(config.getDynamicHead) {
+    res.write(config.getDynamicHead(req, state))
+  }
+}
+
+const sendConfigTrailer = (req, state, res) => {
+  if(config.getTrailer) {
+    res.write(config.getTrailer(req))
+  }
+}
+
 const afterRender = assets => {
   const results = strategy.afterRender.map(fn => fn(config, assets))
   const ret = results.reduce(
@@ -155,7 +185,7 @@ const renderToStream = async (routeComponent, res) => {
   console.log('Not Yet Implemented')
 }
 
-const sendState(req, state, res) => {
+const sendState = (req, state, res) => {
   if (state.json) {
     res.write(
       `<script>window.__INITIALSTATE__ = ${JSON.stringify(
@@ -202,13 +232,14 @@ const renderGet = async (req, res, settings) => {
     sendInitialHeaders(res, assets)
     res.write('<!DOCTYPE html><html><head>')
     sendHeadAssets(res, assets)
+    sendConfigStaticHead(req, res)
     sendSettings(res, settings)
     if (res.flush) {
       res.flush()
     }
-    
     const state = await getStatePromise || {}
     eventcollector.endJob(stateJob)
+    sendConfigDynamicHead(req, state, res)
     sendState(req, state, res)
     const renderJob = eventcollector.startJob('render')
     let renderMethod
