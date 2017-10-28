@@ -170,8 +170,7 @@ module.exports = {
     }),
     new workboxPlugin({
       globDirectory: path.resolve(DIST_DIR, 'static'),
-      globPatterns: ['**/*.{html,js,css,png,svg}'],
-      globIgnores: '_errors/**',
+      globPatterns: ['_assets/**/*.{html,js,css,png,svg}'],
       swDest: path.join(DIST_DIR, 'lib', 'includes', 'serviceworker.js'),
       dontCacheBustUrlsMatching: /\.\w{8}\./,
     }),
