@@ -1,5 +1,7 @@
 const path = require('path')
 const webpack = require('webpack')
+const fse = require('fs-extra')
+
 const server_config = require('../webpack/webpack.config.server.js')
 const client_config = require('../webpack/webpack.config.client.js')
 const createStrategy = require('./strategy')
@@ -46,6 +48,16 @@ const runWebpack = config => {
   })
 }
 
+const copyStatic = async () => {
+  const src = packageJson.linc && packageJson.linc.staticDir
+  if(src) {
+    const dirname = path.basename(src)
+    const dest = path.resolve(DIST_DIR, 'static', dirname)
+    console.log(`Copying ${src} to ${dest}`)
+    return fse.copy(src, dest, {overwrite: true, dereference: true, preserveTimestamps: true})
+  }
+}
+
 const build = async callback => {
   const strategy = createStrategy(getDependencies())
   await generateClient(path.resolve(DIST_DIR, 'client.js'), strategy)
@@ -54,6 +66,7 @@ const build = async callback => {
     strategy
   )
   console.log('Creating a client package. This can take a minute or two..')
+  const staticCopy = copyStatic()
   await runWebpack(client_config)
   console.log('Created client package')
 
@@ -65,6 +78,7 @@ const build = async callback => {
   console.log('Now working on server package')
   await serverStrategy
   await runWebpack(server_config)
+  await staticCopy
   console.log('Created server package')
   callback()
 }
