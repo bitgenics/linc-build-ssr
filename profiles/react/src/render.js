@@ -19,8 +19,8 @@ try {
     console.log('Error loading linc.server.config.js', e)
   }
 }
+
 const config = Object.assign({}, clientConfig, serverConfig)
-console.log('Config', config)
 
 const polyfills_io = 'https://cdn.polyfill.io/v2/polyfill.min.js?features='
 const polyfillsURL = config.polyfills
