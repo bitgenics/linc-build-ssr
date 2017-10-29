@@ -137,19 +137,19 @@ const sendDynamicHead = (res, head) => {
 }
 
 const sendConfigStaticHead = (req, res) => {
-  if(config.getStaticHead) {
+  if (config.getStaticHead) {
     res.write(config.getStaticHead(req))
   }
 }
 
 const sendConfigDynamicHead = (req, state, res) => {
-  if(config.getDynamicHead) {
+  if (config.getDynamicHead) {
     res.write(config.getDynamicHead(req, state))
   }
 }
 
 const sendConfigTrailer = (req, state, res) => {
-  if(config.getTrailer) {
+  if (config.getTrailer) {
     res.write(config.getTrailer(req))
   }
 }
@@ -180,9 +180,10 @@ const renderHTML = (html, res) => {
 }
 
 const renderToString = async (routeComponent, state, res) => {
-  const renderComponent = strategy.wrapInStoreHoC && state.json
-    ? strategy.wrapInStoreHoC(state.json, routeComponent)
-    : routeComponent
+  const renderComponent =
+    strategy.wrapInStoreHoC && state.json
+      ? strategy.wrapInStoreHoC(state.json, routeComponent)
+      : routeComponent
   const html = await strategy.render(renderComponent)
   renderHTML(html, res)
 }
@@ -201,9 +202,7 @@ const sendState = (req, state, res) => {
   }
   if (req.userInfo) {
     res.write(
-      `<script>window.__USER_INFO__ = ${JSON.stringify(
-        req.userInfo
-      )};</script>`
+      `<script>window.__USER_INFO__ = ${JSON.stringify(req.userInfo)};</script>`
     )
   }
 }
@@ -243,13 +242,13 @@ const renderGet = async (req, res, settings) => {
     if (res.flush) {
       res.flush()
     }
-    const state = await getStatePromise || {}
+    const state = (await getStatePromise) || {}
     eventcollector.endJob(stateJob)
     sendConfigDynamicHead(req, state, res)
     sendState(req, state, res)
     const renderJob = eventcollector.startJob('render')
     let renderMethod
-    if(state.html) {
+    if (state.html) {
       renderMethod = 'static'
       renderHTML(state.html, res)
     } else if (strategy.render.canStream && strategy.render.canStream()) {
@@ -261,7 +260,7 @@ const renderGet = async (req, res, settings) => {
     }
     eventcollector.endJob(renderJob, { renderMethod })
 
-    if(polyfillsURL) {
+    if (polyfillsURL) {
       res.write(`<script src="${polyfillsURL}"></script>`)
     }
     res.write(`<script src="/${assets['vendor.js']}"></script>`)

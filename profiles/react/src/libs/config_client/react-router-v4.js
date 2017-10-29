@@ -15,5 +15,4 @@ const routerFragment = (routeComponent, history) =>
   `
 const ${routeComponent} = <BrowserRouter>{config.root}</BrowserRouter>`
 
-
 export { configFragment, clientImportFragment, routerFragment }

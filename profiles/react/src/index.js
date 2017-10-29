@@ -50,11 +50,15 @@ const runWebpack = config => {
 
 const copyStatic = async () => {
   const src = packageJson.linc && packageJson.linc.staticDir
-  if(src) {
+  if (src) {
     const dirname = path.basename(src)
     const dest = path.resolve(DIST_DIR, 'static', dirname)
     console.log(`Copying ${src} to ${dest}`)
-    return fse.copy(src, dest, {overwrite: true, dereference: true, preserveTimestamps: true})
+    return fse.copy(src, dest, {
+      overwrite: true,
+      dereference: true,
+      preserveTimestamps: true
+    })
   }
 }
 
