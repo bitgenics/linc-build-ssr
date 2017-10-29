@@ -1,26 +1,32 @@
 import EventCollector from 'event-collector'
-import createConfig from 'linc-config-js'
+import configFile from 'linc-config-js'
 import assets from 'asset-manifest'
 import strategy from 'server-strategy'
 import includes from 'includes'
 
 const extRegex = /.*?\.(\w*)$/
 
-const clientConfig =
-  typeof createConfig === 'function' ? createConfig('SERVER') : createConfig
-let serverConfig = {}
-try {
-  serverConfig = require('linc-server-config-js')
-  serverConfig = serverConfig.default ? serverConfig.default : serverConfig
-} catch (e) {
-  if(e.message.includes('Cannot find module "linc-server-config-js')) {
-    console.log("Couldn't find any server-only configuration: 'linc.server.config.js'")
-  } else {
-    console.log('Error loading linc.server.config.js', e)
+const createConfig = () => {
+  const clientConfig =
+    typeof configFile === 'function' ? configFile('server') : configFile
+  let serverConfig = {}
+  try {
+    serverConfig = require('linc-server-config-js')
+    serverConfig = serverConfig.default ? serverConfig.default : serverConfig
+  } catch (e) {
+    if (e.message.includes('Cannot find module "linc-server-config-js')) {
+      console.log(
+        "Couldn't find any server-only configuration: 'linc.server.config.js'"
+      )
+    } else {
+      console.log('Error loading linc.server.config.js', e)
+    }
   }
+
+  return Object.assign({}, clientConfig, serverConfig)
 }
 
-const config = Object.assign({}, clientConfig, serverConfig)
+const config = createConfig();
 
 const polyfills_io = 'https://cdn.polyfill.io/v2/polyfill.min.js?features='
 const polyfillsURL = config.polyfills
