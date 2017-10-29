@@ -53,7 +53,8 @@ const babel_options = {
     ['env', {
       "targets": {
         "browsers": ["> 1%", "last 2 versions"]
-      }
+      },
+      modules: false
     }],
     ['react'],
     ['stage-1']

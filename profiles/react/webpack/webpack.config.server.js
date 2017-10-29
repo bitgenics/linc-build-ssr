@@ -34,7 +34,8 @@ const babel_options = {
     ['env', {
       targets: {
         node: 8
-      }
+      },
+      modules: false
     }],
     ['react'],
     ['stage-1']
