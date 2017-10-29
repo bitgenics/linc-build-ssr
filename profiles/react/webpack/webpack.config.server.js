@@ -69,7 +69,8 @@ module.exports = {
     path: path.resolve(PROJECT_DIR, 'dist', 'static'),
     filename: '../lib/[name].js',
     library: 'server',
-    libraryTarget: 'commonjs2'
+    libraryTarget: 'commonjs2',
+    publicPath: common.publicPath
   },
 
   module: {
