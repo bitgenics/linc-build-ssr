@@ -66,6 +66,11 @@ const pickAfterRenders = deps => {
   return afterRenders
 }
 
+const getLibs = strategy => {
+  const list = Object.keys(strategy).reduce((list, elem) => { return list.concat(strategy[elem]) }, [])
+  return list.filter((item, pos, self) => self.indexOf(item) == pos )
+}
+
 const createStrategy = deps => {
   try {
     const strategy = {}
@@ -75,6 +80,8 @@ const createStrategy = deps => {
     strategy.getStatePromise = pickStatePromise(deps)
     strategy.preRenders = pickPreRenders(deps)
     strategy.afterRenders = pickAfterRenders(deps)
+    strategy.libs = getLibs(strategy)
+    console.log('Strategy', strategy)
     return strategy
   } catch (e) {
     console.error("We couldn't automatically figure out what plugins to use")
