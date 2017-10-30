@@ -2,7 +2,7 @@ const semver = require('semver')
 
 const pickInits = deps => {
   const inits = []
-  if(deps['react-loadable']) {
+  if (deps['react-loadable']) {
     inits.push('react-loadable')
   }
   return inits
@@ -33,7 +33,7 @@ const pickStatePromise = deps => {
 
 const pickPreRenders = deps => {
   const preRenders = []
-  if(deps['react-loadable']) {
+  if (deps['react-loadable']) {
     preRenders.push('react-loadable')
   }
   if (deps['react-redux']) {
@@ -57,7 +57,7 @@ const pickRenderer = deps => {
 
 const pickAfterRenders = deps => {
   const afterRenders = []
-  if(deps['react-loadable']) {
+  if (deps['react-loadable']) {
     afterRenders.push('react-loadable')
   }
   if (deps['react-helmet']) {
@@ -67,8 +67,10 @@ const pickAfterRenders = deps => {
 }
 
 const getLibs = strategy => {
-  const list = Object.keys(strategy).reduce((list, elem) => { return list.concat(strategy[elem]) }, [])
-  return list.filter((item, pos, self) => self.indexOf(item) == pos )
+  const list = Object.keys(strategy).reduce((list, elem) => {
+    return list.concat(strategy[elem])
+  }, [])
+  return list.filter((item, pos, self) => self.indexOf(item) == pos)
 }
 
 const createStrategy = deps => {

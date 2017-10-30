@@ -1,13 +1,19 @@
+import React from 'react'
 import Loadable from 'react-loadable'
 
 const initsFn = () => {
-	return Loadable.preloadAll()
+  return Loadable.preloadAll()
 }
 
-const preRendersFn = (req, renderComponent, state ) => {
+const preRendersFn = (req, renderComponent, state) => {
   req.linc = req.linc || {}
   req.linc.loaded_modules = []
-  return <Loadable.Capture report={moduleName => req.linc.loaded_modules.push(moduleName)}>{renderComponent}</Loadable.Capture>
+  return (
+    <Loadable.Capture
+      report={moduleName => req.linc.loaded_modules.push(moduleName)}>
+      {renderComponent}
+    </Loadable.Capture>
+  )
 }
 
 const afterRendersFn = (req, config, assets) => {

@@ -26,7 +26,7 @@ const createConfig = () => {
   return Object.assign({}, clientConfig, serverConfig)
 }
 
-const config = createConfig();
+const config = createConfig()
 
 const polyfills_io = 'https://cdn.polyfill.io/v2/polyfill.min.js?features='
 const polyfillsURL = config.polyfills
@@ -76,8 +76,8 @@ const sendIncludes = (res, url) => {
   res.send(include)
 }
 
-const inits = (req) => {
-  const promises = strategy.inits.map((fn) => fn(req))
+const inits = req => {
+  const promises = strategy.inits.map(fn => fn(req))
   return Promise.all(promises)
 }
 
@@ -225,7 +225,7 @@ const renderGet = async (req, res, settings) => {
       eventcollector.endJob(getJob)
       return sendIncludes(res, url)
     }
-    
+
     eventcollector.addMeta({ strategy: strategy.strategy })
     await inits(req)
 
