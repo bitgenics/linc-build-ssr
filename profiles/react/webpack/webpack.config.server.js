@@ -116,6 +116,9 @@ module.exports = {
     new webpack.optimize.OccurrenceOrderPlugin(),
     new webpack.ProvidePlugin({
       React: 'react',
+    }),
+    new webpack.optimize.LimitChunkCountPlugin({
+      maxChunks: 1
     })
   ],
 
