@@ -1,11 +1,11 @@
 import helmet from 'react-helmet'
 
-const afterRenderFn = (config, assets) => {
+const afterRendersFn = (req, config, assets) => {
   return { head: helmet.renderStatic() }
 }
 
-const afterRender = {
+const afterRenders = {
   fn: afterRenderFn
 }
 
-export { afterRender }
+export { afterRenders }

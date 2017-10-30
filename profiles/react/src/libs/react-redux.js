@@ -2,7 +2,7 @@ import React from 'react'
 import { createStore, applyMiddleware } from 'redux'
 import { Provider } from 'react-redux'
 
-const wrapInStoreHoCFn = (state, routeComponent) => {
+const preRendersFn = (req, routeComponent, state ) => {
   const ignoreMiddleware = store => next => action => {
     next({ type: 'ToIgnore' })
   }
@@ -10,8 +10,8 @@ const wrapInStoreHoCFn = (state, routeComponent) => {
   return <Provider store={store}>{routeComponent}</Provider>
 }
 
-const wrapInStoreHoC = {
-  fn: wrapInStoreHoCFn
+const preRenders = {
+  fn: preRendersFn
 }
 
-export { wrapInStoreHoC }
+export { preRenders }
