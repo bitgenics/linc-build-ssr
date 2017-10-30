@@ -33,7 +33,7 @@ const polyfillsURL = config.polyfills
   ? `${polyfills_io}${config.polyfills.replace(' ', '')}`
   : null
 
-const init = req => {
+const initEventCollector = req => {
   const packageJson = require(__dirname + '/../package.json')
   req.eventcollector = req.eventcollector || new EventCollector({})
   req.eventcollector.addMeta({
@@ -74,6 +74,11 @@ const sendIncludes = (res, url) => {
   }
   const include = includes(url)
   res.send(include)
+}
+
+const inits = (req) => {
+  const promises = strategy.inits.map((fn) => fn(req))
+  return Promise.all(promises)
 }
 
 const sendInitialHeaders = (res, assets) => {
@@ -163,8 +168,8 @@ const sendState = (req, state, res) => {
   }
 }
 
-const afterRender = assets => {
-  const results = strategy.afterRender.map(fn => fn(config, assets))
+const afterRender = (req, assets) => {
+  const results = strategy.afterRenders.map(fn => fn(req, config, assets))
   const ret = results.reduce(
     (previous, current) => {
       return {
@@ -177,8 +182,8 @@ const afterRender = assets => {
   return ret
 }
 
-const renderHTML = (html, res) => {
-  const { head, trailer } = afterRender(assets)
+const renderHTML = (html, req, res) => {
+  const { head, trailer } = afterRender(req, assets)
   if (head) {
     res.write(head)
   }
@@ -186,6 +191,13 @@ const renderHTML = (html, res) => {
   if (trailer) {
     res.write(trailer)
   }
+}
+
+const getRenderComponent = (req, routeComponent, state) => {
+  return strategy.preRenders.reduce((renderComponent, fn) => {
+    const retval = fn(req, renderComponent, state)
+    return retval
+  }, routeComponent)
 }
 
 const renderToString = async (req, routeComponent, state, res) => {
@@ -215,6 +227,8 @@ const renderGet = async (req, res, settings) => {
     }
     
     eventcollector.addMeta({ strategy: strategy.strategy })
+    await inits(req)
+
     const routeJob = eventcollector.startJob('routing')
     const routeResult = await strategy.router(req, config)
     const { redirectLocation, route, routeComponent } = routeResult
@@ -248,13 +262,13 @@ const renderGet = async (req, res, settings) => {
     let renderMethod
     if (state.html) {
       renderMethod = 'static'
-      renderHTML(state.html, res)
+      renderHTML(state.html, req, res)
     } else if (strategy.render.canStream && strategy.render.canStream()) {
       renderMethod = 'renderToStream'
-      await renderToStream(routeComponent, state, res)
+      await renderToStream(req, routeComponent, state, res)
     } else {
       renderMethod = 'renderToString'
-      await renderToString(routeComponent, state, res)
+      await renderToString(req, routeComponent, state, res)
     }
     eventcollector.endJob(renderJob, { renderMethod })
 

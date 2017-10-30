@@ -1,5 +1,13 @@
 const semver = require('semver')
 
+const pickInits = deps => {
+  const inits = []
+  if(deps['react-loadable']) {
+    inits.push('react-loadable')
+  }
+  return inits
+}
+
 const pickRouter = deps => {
   if (deps['react-router']) {
     if (semver.lt(deps['react-router'], '4.0.0')) {
@@ -23,10 +31,15 @@ const pickStatePromise = deps => {
   }
 }
 
-const pickWrapInStoreHoC = deps => {
-  if (deps['react-redux']) {
-    return 'react-redux'
+const pickPreRenders = deps => {
+  const preRenders = []
+  if(deps['react-loadable']) {
+    preRenders.push('react-loadable')
   }
+  if (deps['react-redux']) {
+    preRenders.push('react-redux')
+  }
+  return preRenders
 }
 
 const pickRenderer = deps => {
@@ -42,22 +55,26 @@ const pickRenderer = deps => {
   }
 }
 
-const pickafterRender = deps => {
-  const afterRender = []
-  if (deps['react-helmet']) {
-    afterRender.push('react-helmet')
+const pickAfterRenders = deps => {
+  const afterRenders = []
+  if(deps['react-loadable']) {
+    afterRenders.push('react-loadable')
   }
-  return afterRender
+  if (deps['react-helmet']) {
+    afterRenders.push('react-helmet')
+  }
+  return afterRenders
 }
 
 const createStrategy = deps => {
   try {
     const strategy = {}
+    strategy.inits = pickInits(deps)
     strategy.router = pickRouter(deps)
     strategy.render = pickRenderer(deps)
     strategy.getStatePromise = pickStatePromise(deps)
-    strategy.wrapInStoreHoC = pickWrapInStoreHoC(deps)
-    strategy.afterRender = pickafterRender(deps)
+    strategy.preRenders = pickPreRenders(deps)
+    strategy.afterRenders = pickAfterRenders(deps)
     return strategy
   } catch (e) {
     console.error("We couldn't automatically figure out what plugins to use")
