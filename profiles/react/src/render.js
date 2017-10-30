@@ -148,9 +148,18 @@ const sendConfigDynamicHead = (req, state, res) => {
   }
 }
 
-const sendConfigTrailer = (req, state, res) => {
-  if (config.getTrailer) {
-    res.write(config.getTrailer(req))
+const sendState = (req, state, res) => {
+  if (state.json) {
+    res.write(
+      `<script>window.__INITIALSTATE__ = ${JSON.stringify(
+        state.json
+      )};</script>`
+    )
+  }
+  if (req.userInfo) {
+    res.write(
+      `<script>window.__USER_INFO__ = ${JSON.stringify(req.userInfo)};</script>`
+    )
   }
 }
 
@@ -179,43 +188,32 @@ const renderHTML = (html, res) => {
   }
 }
 
-const renderToString = async (routeComponent, state, res) => {
-  const renderComponent =
-    strategy.wrapInStoreHoC && state.json
-      ? strategy.wrapInStoreHoC(state.json, routeComponent)
-      : routeComponent
+const renderToString = async (req, routeComponent, state, res) => {
+  const renderComponent = getRenderComponent(req, routeComponent, state.json)
   const html = await strategy.render(renderComponent)
-  renderHTML(html, res)
+  renderHTML(html, req, res)
 }
 
 const renderToStream = async (routeComponent, res) => {
   console.log('Not Yet Implemented')
 }
 
-const sendState = (req, state, res) => {
-  if (state.json) {
-    res.write(
-      `<script>window.__INITIALSTATE__ = ${JSON.stringify(
-        state.json
-      )};</script>`
-    )
-  }
-  if (req.userInfo) {
-    res.write(
-      `<script>window.__USER_INFO__ = ${JSON.stringify(req.userInfo)};</script>`
-    )
+const sendConfigTrailer = (req, state, res) => {
+  if (config.getTrailer) {
+    res.write(config.getTrailer(req))
   }
 }
 
 const renderGet = async (req, res, settings) => {
   try {
-    const eventcollector = init(req)
+    const eventcollector = initEventCollector(req)
     const getJob = eventcollector.startJob('renderGet')
     const url = req.url
     if (url.length > 1 && !(url.lastIndexOf('/') > 1) && includes(url)) {
       eventcollector.endJob(getJob)
       return sendIncludes(res, url)
     }
+    
     eventcollector.addMeta({ strategy: strategy.strategy })
     const routeJob = eventcollector.startJob('routing')
     const routeResult = await strategy.router(req, config)
