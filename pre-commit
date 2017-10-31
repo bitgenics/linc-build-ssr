@@ -1,0 +1,42 @@
+#!/bin/bash
+
+### This file's origin: https://gist.github.com/broofa/730fab6ceb1686f4a1fa9977b791b1b5
+
+# cd into repository's top level directory
+cd "$(git rev-parse --show-toplevel)"
+
+# Find eslint. Alternatively, use a global install if you have it
+ESLINT="node_modules/.bin/eslint"
+
+# Show current directory
+pwd
+
+# Show error if eslint not found
+if [[ ! -x "$ESLINT" ]]; then
+  printf "\t\033[41mPlease install ESlint\033[0m (npm install eslint)\n"
+  exit 1
+fi
+
+# Files staged for commit
+STAGED_FILES=($(git diff --cached --name-only --diff-filter=ACM | grep ".jsx\{0,1\}$"))
+if [[ "$STAGED_FILES" = "" ]]; then
+  exit 0
+fi
+echo "ESLinting ${#STAGED_FILES[@]} files"
+
+# Run eslint
+${ESLINT} "${STAGED_FILES[@]}" --fix
+
+ESLINT_EXIT="$?"
+
+# Re-add files since they may have been fixed
+git add "${STAGED_FILES[@]}"
+
+if [[ "${ESLINT_EXIT}" == 0 ]]; then
+  printf "\n\033[42mCOMMIT SUCCEEDED\033[0m\n"
+else
+  printf "\n\033[41mCOMMIT FAILED:\033[0m Fix eslint errors and try again\n"
+  exit 1
+fi
+
+exit $?
