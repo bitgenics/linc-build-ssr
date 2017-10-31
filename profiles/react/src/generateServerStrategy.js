@@ -14,6 +14,7 @@ const createServerStrategyCode = strategy => {
   const variableName = 'strategy'
 
   const requires = mapValues(strategy, (value, key) => {
+    if(key === 'libs') return
     if (typeof value === 'string') {
       const requireFile = path.resolve(__dirname, 'libs', value)
       return `${variableName}['${key}'] = require('${requireFile}').${key}.fn;`
