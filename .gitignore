@@ -40,3 +40,6 @@ customer/
 dist/
 
 scrap.js
+
+# Joe backup files
+*~
