@@ -83,7 +83,6 @@ const createStrategy = deps => {
     strategy.preRenders = pickPreRenders(deps)
     strategy.afterRenders = pickAfterRenders(deps)
     strategy.libs = getLibs(strategy)
-    console.log('Strategy', strategy)
     return strategy
   } catch (e) {
     console.error("We couldn't automatically figure out what plugins to use")
