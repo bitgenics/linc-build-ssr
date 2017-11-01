@@ -2,11 +2,12 @@ const path = require('path')
 const fse = require('fs-extra')
 
 const steps = [
+  'inits',
   'getStatePromise',
   'router',
-  'wrapInStoreHoC',
+  'preRenders',
   'render',
-  'afterRender'
+  'afterRenders'
 ]
 
 const mapValues = (obj, iterator) => {
@@ -18,22 +19,9 @@ const mapValues = (obj, iterator) => {
   return mapped
 }
 
-const getModules = strategy => {
-  let modules = []
-  steps.forEach(step => {
-    const module = strategy[step]
-    if (Array.isArray(module)) {
-      modules = modules.concat(module)
-    } else {
-      modules.push(module)
-    }
-  })
-
-  return modules
-}
-
-const getImports = modules => {
-  const fragments = modules.map(
+const getImports = strategy => {
+  const libs = strategy.libs.map(lib => requireLib(lib)).filter(e => e)
+  const fragments = libs.map(
     module => (module ? module.clientImportFragment : '')
   )
   return fragments.join('\n')
@@ -55,13 +43,7 @@ const createClientStrategy = strategy => {
     if (typeof module === 'string') {
       clientStrategy[step] = requireLib(module)
     } else if (Array.isArray(module)) {
-      clientStrategy[step] = module.reduce((libs, name) => {
-        const lib = requireLib(name)
-        if (lib) {
-          libs.push(lib)
-        }
-        return libs
-      }, [])
+      clientStrategy[step] = module.map(name => requireLib(name)).filter(e => e)
     }
   })
   return clientStrategy
@@ -69,20 +51,31 @@ const createClientStrategy = strategy => {
 
 const createClientCode = strategy => {
   const clientStrategy = createClientStrategy(strategy)
-  const modules = getModules(clientStrategy)
 
-  let wrapHoc
-  if (clientStrategy.wrapInStoreHoC) {
-    wrapHoc = clientStrategy.wrapInStoreHoC.wrapInStoreHoCFragment(
-      'renderComponent',
-      'store',
-      'routeComponent'
+  let preRenderCode
+  if (clientStrategy.preRenders) {
+    const preRenders = clientStrategy.preRenders.filter(
+      e => e.preRenderFragment
     )
-  } else {
-    wrapHoc = 'const renderComponent = routeComponent\n'
+    const fragments = preRenders.map(preRender =>
+      preRender.preRenderFragment('renderComponent', 'store')
+    )
+    preRenderCode = fragments.join('\n')
   }
 
-  return `${getImports(modules)}
+  const inits = clientStrategy.inits
+    .map(init => init.initFragment())
+    .filter(e => e)
+  let runRender = 'main()'
+  if (inits.length > 0) {
+    runRender = `Promise.all([
+  ${inits.join('\n')}
+]).then(main())
+    `
+  }
+
+  return `
+${getImports(strategy)}
 
 import createConfig from 'linc-config-js'
 
@@ -92,15 +85,21 @@ const serverState = (window && window.__INITIALSTATE__);
 const initialState = config.state && config.state.parseServerState ? config.state.parseServerState(serverState) : serverState;
 const userInfo = (window && window.__USER_INFO__) || {};
 
-${clientStrategy.getStatePromise.createStoreFragment('store', 'initialState')}
-const env = {store, userInfo, config};
-if(typeof config.init ==='function') {
-    config.init(env);
+const main = () => {
+
+  ${clientStrategy.getStatePromise.createStoreFragment('store', 'initialState')}
+  const env = {store, userInfo, config};
+  if(typeof config.init ==='function') {
+      config.init(env);
+  }
+
+  ${clientStrategy.router.routerFragment('routeComponent', 'history')}
+  let renderComponent = routeComponent
+  ${preRenderCode || ''}
+  ${clientStrategy.render.renderFragment('renderComponent', 'root')}
 }
 
-${clientStrategy.router.routerFragment('routeComponent', 'history')}
-${wrapHoc}
-${clientStrategy.render.renderFragment('renderComponent', 'root')}
+${runRender}
 
 if (!config.serviceworker && 'serviceWorker' in navigator) {
   navigator.serviceWorker.register('/serviceworker.js')

@@ -1,6 +1,6 @@
 const clientImportFragment = `import { Provider } from 'react-redux'`
 
-const wrapInStoreHoCFragment = (renderComponent, store, routeComponent) =>
-  `const ${renderComponent} = <Provider store={${store}}>{${routeComponent}}</Provider>`
+const preRenderFragment = (renderComponent, store) =>
+  `${renderComponent} = <Provider store={${store}}>{${renderComponent}}</Provider>`
 
-export { clientImportFragment, wrapInStoreHoCFragment }
+export { clientImportFragment, preRenderFragment }

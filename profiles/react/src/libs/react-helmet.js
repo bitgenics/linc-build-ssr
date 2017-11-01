@@ -5,7 +5,7 @@ const afterRendersFn = (req, config, assets) => {
 }
 
 const afterRenders = {
-  fn: afterRenderFn
+  fn: afterRendersFn
 }
 
 export { afterRenders }
