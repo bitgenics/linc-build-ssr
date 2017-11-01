@@ -11,114 +11,58 @@ const DIST_DIR = path.resolve(PROJECT_DIR, 'dist');
 
 const srcDir = common.srcDir;
 
-const url_loader_config = {
-  exclude: [
-    /\.html$/,
-    /\.(js|jsx)$/,
-    /\.css$/,
-    /\.json$/,
-    /\.svg$/,
-    /\.woff$/,
-    /\.woff2$/,
-    /\.eot$/,
-    /\.ttf$/,
-  ],
-  loader: 'url-loader',
-  query: {
-    limit: 10000,
-    name: '_assets/media/[name].[hash:8].[ext]'
-  }
-}
+const createConfig = (options) => {
+  options = options || {}
 
-const extractPlugin = ExtractTextPlugin.extract({
-  fallback: { loader: 'style-loader', options: { sourceMap: true } },
-  use:[{ 
-    loader: 'css-loader', 
-    options: {
-      sourceMap: true,
-      modules: common.packageJson.linc.cssModules || false,
-      importLoaders: 1,
-      localIdentName: "[name]__[local]___[hash:base64:5]"
+  const url_loader_config = {
+    exclude: [
+      /\.html$/,
+      /\.(js|jsx)$/,
+      /\.css$/,
+      /\.json$/,
+      /\.svg$/,
+      /\.woff$/,
+      /\.woff2$/,
+      /\.eot$/,
+      /\.ttf$/,
+    ],
+    loader: 'url-loader',
+    query: {
+      limit: 10000,
+      name: '_assets/media/[name].[hash:8].[ext]'
     }
-  }]
-})
+  }
 
-const css_loader = {
-  test: /\.(css)$/,
-  loader: extractPlugin,
-}
+  const extractPlugin = ExtractTextPlugin.extract({
+    fallback: { loader: 'style-loader', options: { sourceMap: true } },
+    use:[{ 
+      loader: 'css-loader', 
+      options: {
+        sourceMap: true,
+        modules: common.packageJson.linc.cssModules || false,
+        importLoaders: 1,
+        localIdentName: "[name]__[local]___[hash:base64:5]"
+      }
+    }]
+  })
 
-const babel_options = {
-  presets: [
+  const css_loader = {
+    test: /\.(css)$/,
+    loader: extractPlugin,
+  }
+
+  const babel_options = options.babel || { presets: [], plugins: [] }
+  babel_options.presets.push(
     ['env', {
       "targets": {
         "browsers": ["> 1%", "last 2 versions"]
       },
       modules: false
-    }],
-    ['react'],
-    ['stage-1']
-  ]
-}
+    }]
+  )
+  babel_options.presets.push('stage-1')
 
-module.exports = {
-  entry: {
-    'main': [path.resolve(DIST_DIR, 'client.js')]
-  },
-
-  resolve: {
-    alias: {
-      'linc-config-js': path.resolve(PROJECT_DIR, srcDir, 'linc.config.js')
-    },
-
-    modules: [srcDir, "node_modules", path.resolve(PROJECT_DIR, "node_modules")],
-    extensions: [".js", ".json", ".ts", ".tsx", ".png"]
-  },
-  resolveLoader: {
-    modules: ['node_modules', path.resolve(LINC_DIR, 'node_modules')]
-  },
-  output: {
-    // The build folder.
-    path: path.resolve(DIST_DIR, 'static'),
-    // Generated JS file names (with nested folders).
-    // There will be one main bundle, and one file per asynchronous chunk.
-    // We don't currently advertise code splitting but Webpack supports it.
-    filename: '_assets/js/[name].[chunkhash:8].js',
-    chunkFilename: '_assets/js/[name].[chunkhash:8].chunk.js',
-    // We inferred the "public path" (such as / or /my-project) from homepage.
-    publicPath: common.publicPath
-  },
-
-  module: {
-    rules: [
-      url_loader_config,
-      {
-        test: /\.svg$/,
-        loader: 'svg-url-loader',
-        query: {
-          limit: 10000,
-          name: '_assets/media/[name].[hash:8].[ext]'
-        }
-      },
-      { enforce: "pre", test: /\.js$/, loader: "source-map-loader" },
-      {
-        test: /\.js$/,
-        loader: 'babel-loader',
-        exclude: /node_modules/,
-        options: babel_options
-      },
-      css_loader,
-      {
-        test: /\.(woff|woff2|eot|ttf)$/,
-        loader: 'file-loader',
-        options: {
-          name: '_assets/fonts/[name].[hash:8].[ext]'
-        }
-      }
-    ]
-  },
-
-  plugins: [
+  let plugins = [
     common.definePlugin,
     new webpack.optimize.OccurrenceOrderPlugin(),
     new webpack.LoaderOptionsPlugin({
@@ -161,13 +105,76 @@ module.exports = {
       },
       comments: false
     })
-  ],
+  ]
 
-  stats: {
-    children: false,
-  },
+  plugins = plugins.concat(options.plugins.map((pluginOptions) => common.createPlugin(pluginOptions)))
 
-  // https://webpack.js.org/configuration/devtool/
-  // 'eval' | 'cheap-eval-source-map' | 'cheap-module-eval-source-map' | 'eval-source-map'
-  devtool: 'source-map'
-};
+  return {
+    entry: {
+      'main': [path.resolve(DIST_DIR, 'client.js')]
+    },
+
+    resolve: {
+      alias: {
+        'linc-config-js': path.resolve(PROJECT_DIR, srcDir, 'linc.config.js')
+      },
+
+      modules: [srcDir, "node_modules", path.resolve(PROJECT_DIR, "node_modules")],
+      extensions: [".js", ".json", ".ts", ".tsx", ".png"]
+    },
+    resolveLoader: {
+      modules: ['node_modules', path.resolve(LINC_DIR, 'node_modules')]
+    },
+    output: {
+      // The build folder.
+      path: path.resolve(DIST_DIR, 'static'),
+      // Generated JS file names (with nested folders).
+      // There will be one main bundle, and one file per asynchronous chunk.
+      // We don't currently advertise code splitting but Webpack supports it.
+      filename: '_assets/js/[name].[chunkhash:8].js',
+      chunkFilename: '_assets/js/[name].[chunkhash:8].chunk.js',
+      // We inferred the "public path" (such as / or /my-project) from homepage.
+      publicPath: common.publicPath
+    },
+
+    module: {
+      rules: [
+        url_loader_config,
+        {
+          test: /\.svg$/,
+          loader: 'svg-url-loader',
+          query: {
+            limit: 10000,
+            name: '_assets/media/[name].[hash:8].[ext]'
+          }
+        },
+        { enforce: "pre", test: /\.js$/, loader: "source-map-loader" },
+        {
+          test: /\.js$/,
+          loader: 'babel-loader',
+          exclude: /node_modules/,
+          options: babel_options
+        },
+        css_loader,
+        {
+          test: /\.(woff|woff2|eot|ttf)$/,
+          loader: 'file-loader',
+          options: {
+            name: '_assets/fonts/[name].[hash:8].[ext]'
+          }
+        }
+      ]
+    },
+    plugins,
+
+    stats: {
+      children: false,
+    },
+
+    // https://webpack.js.org/configuration/devtool/
+    // 'eval' | 'cheap-eval-source-map' | 'cheap-module-eval-source-map' | 'eval-source-map'
+    devtool: 'source-map'
+  };
+}
+
+module.exports = createConfig 

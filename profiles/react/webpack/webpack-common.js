@@ -6,6 +6,7 @@ process.env.NODE_ENV = 'production';
 
 const LINC_DIR = path.resolve(__dirname, '..');
 const PROJECT_DIR = process.cwd();
+const MODULES_DIR = path.resolve(PROJECT_DIR, 'node_modules')
 
 const packageJson = require(path.resolve(PROJECT_DIR, 'package.json'));
 const lincConfig = packageJson.linc || {};
@@ -50,6 +51,14 @@ Object.keys(env).forEach((key) => defineEnv[key] = JSON.stringify(env[key]));
 defineEnv['process.env.NODE_ENV'] = JSON.stringify('production');
 const definePlugin = new webpack.DefinePlugin(defineEnv);
 
+const createPlugin = (options) => {
+  let Plugin = require(path.resolve(MODULES_DIR, options.import))
+  if(options.exportName) {
+    Plugin = Plugin[options.exportName]
+  }
+  return new Plugin(options.options)
+}
+
 module.exports = {
-  LINC_DIR, PROJECT_DIR, packageJson, lincConfig, srcDir, deps, definePlugin, publicPath
+  LINC_DIR, PROJECT_DIR, packageJson, lincConfig, srcDir, deps, definePlugin, publicPath, createPlugin
 }
