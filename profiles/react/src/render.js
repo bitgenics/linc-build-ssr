@@ -168,13 +168,34 @@ const sendState = (req, state, res) => {
   }
 }
 
+const sendTrailer = (res, trailer) => {
+  if (trailer.html) {
+    res.write(html)
+  }
+  if (trailer.scripts) {
+    trailer.scripts.forEach(script => {
+      res.write(`<script src="${script.src}></script>`)
+    })
+  }
+}
+
+const trailerToString = trailer => {
+  let scripts = ''
+  if (trailer.scripts) {
+    scripts = trailer.scripts
+      .map(script => `<script src="${script.src}></script>`)
+      .join()
+  }
+  return (trailer.html || '') + '\n' + scripts
+}
+
 const afterRender = (req, assets) => {
   const results = strategy.afterRenders.map(fn => fn(req, config, assets))
   const ret = results.reduce(
     (previous, current) => {
       return {
         head: previous.head + dynamicHeadToString(current.head),
-        trailer: previous.trailer + (current.trailer || '')
+        trailer: previous.trailer + trailerToString(current.trailer)
       }
     },
     { head: '', trailer: '' }
