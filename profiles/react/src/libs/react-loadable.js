@@ -1,5 +1,7 @@
 import React from 'react'
 import Loadable from 'react-loadable'
+import { getBundles } from 'react-loadable/webpack'
+import stats from 'reactloadable'
 
 const initsFn = () => {
   return Loadable.preloadAll()
@@ -17,8 +19,12 @@ const preRendersFn = (req, renderComponent, state) => {
 }
 
 const afterRendersFn = (req, config, assets) => {
-  console.log('Modules', req.linc.loaded_modules)
-  return {}
+  const bundles = getBundles(stats, req.linc.loaded_modules)
+  const scriptList = bundles.filter(bundle => bundle.file.endsWith('.js'))
+  const scripts = scriptList.map(script => {
+    return { src: `/${script.file}` }
+  })
+  return { trailer: { scripts } }
 }
 
 const inits = {
