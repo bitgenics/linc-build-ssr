@@ -180,10 +180,11 @@ const sendTrailer = (res, trailer) => {
 }
 
 const trailerToString = trailer => {
+  if (!trailer) return ''
   let scripts = ''
   if (trailer.scripts) {
     scripts = trailer.scripts
-      .map(script => `<script src="${script.src}></script>`)
+      .map(script => `<script src="${script.src}"></script>\n`)
       .join()
   }
   return (trailer.html || '') + '\n' + scripts
@@ -208,10 +209,8 @@ const renderHTML = (html, req, res) => {
   if (head) {
     res.write(head)
   }
-  res.write(`</head><body><div id="root">${html}</div>`)
-  if (trailer) {
-    res.write(trailer)
-  }
+  res.write(`</head>\n<body><div id="root">${html}</div>\n`)
+  return trailer
 }
 
 const getRenderComponent = (req, routeComponent, state) => {
@@ -224,7 +223,7 @@ const getRenderComponent = (req, routeComponent, state) => {
 const renderToString = async (req, routeComponent, state, res) => {
   const renderComponent = getRenderComponent(req, routeComponent, state.json)
   const html = await strategy.render(renderComponent)
-  renderHTML(html, req, res)
+  return renderHTML(html, req, res)
 }
 
 const renderToStream = async (routeComponent, res) => {
@@ -281,15 +280,16 @@ const renderGet = async (req, res, settings) => {
     sendState(req, state, res)
     const renderJob = eventcollector.startJob('render')
     let renderMethod
+    let trailer
     if (state.html) {
       renderMethod = 'static'
-      renderHTML(state.html, req, res)
+      trailer = renderHTML(state.html, req, res)
     } else if (strategy.render.canStream && strategy.render.canStream()) {
       renderMethod = 'renderToStream'
-      await renderToStream(req, routeComponent, state, res)
+      trailer = await renderToStream(req, routeComponent, state, res)
     } else {
       renderMethod = 'renderToString'
-      await renderToString(req, routeComponent, state, res)
+      trailer = await renderToString(req, routeComponent, state, res)
     }
     eventcollector.endJob(renderJob, { renderMethod })
 
@@ -298,6 +298,7 @@ const renderGet = async (req, res, settings) => {
     }
     res.write(`<script src="/${assets['vendor.js']}"></script>`)
     res.write(`<script src="/${assets['main.js']}"></script>`)
+    if (trailer) res.write(trailer)
     sendConfigTrailer(req, state, res)
     res.write('</body></html>')
     res.end()
