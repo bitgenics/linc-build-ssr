@@ -8,12 +8,12 @@ const webpackConfig = distDir => {
   return {
     server: {
       babel: {
-        presets: ['react']
+        presets: ['babel-preset-react']
       }
     },
     client: {
       babel: {
-        presets: ['react']
+        presets: ['babel-preset-react']
       }
     }
   }
