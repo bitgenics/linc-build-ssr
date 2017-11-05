@@ -240,6 +240,27 @@ const sendConfigTrailer = (req, state, res) => {
   }
 }
 
+const sendDeferredScript = (res, assets) => {
+  if(assets['defer.js']) {
+    res.write(`
+<script type="text/javascript">
+function downloadJSAtOnload() {
+  var element = document.createElement("script");
+  element.src = "/${assets['defer.js']}";
+  document.body.appendChild(element);
+}
+if (window.addEventListener) {
+  window.addEventListener("load", downloadJSAtOnload, false);
+} else if (window.attachEvent) {
+window.attachEvent("onload", downloadJSAtOnload);
+} else {
+  window.onload = downloadJSAtOnload;
+}
+</script>
+      `)
+  }
+}
+
 const renderGet = async (req, res, settings) => {
   try {
     const eventcollector = initEventCollector(req)
@@ -304,6 +325,7 @@ const renderGet = async (req, res, settings) => {
     res.write(`<script src="/${assets['main.js']}"></script>`)
     if (trailer) res.write(trailer)
     sendConfigTrailer(req, state, res)
+    sendDeferredScript(res, assets)
     res.write('</body></html>')
     res.end()
     eventcollector.endJob(getJob)

@@ -1,4 +1,5 @@
 const path = require('path');
+const fs = require('fs')
 const webpack = require('webpack');
 const ExtractTextPlugin = require("extract-text-webpack-plugin");
 const ManifestPlugin = require('webpack-manifest-plugin');
@@ -109,10 +110,16 @@ const createConfig = (options) => {
 
   plugins = plugins.concat(options.plugins.map((pluginOptions) => common.createPlugin(pluginOptions)))
 
+  const entry = {
+    'main': [path.resolve(DIST_DIR, 'client.js')],
+  }
+  const deferFile = path.resolve(srcDir, 'defer.js')
+  if(fs.existsSync(deferFile)) {
+    entry.defer = [deferFile]
+  }
+
   return {
-    entry: {
-      'main': [path.resolve(DIST_DIR, 'client.js')]
-    },
+    entry,
 
     resolve: {
       alias: {
