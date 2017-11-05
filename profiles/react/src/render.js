@@ -96,9 +96,11 @@ const sendInitialHeaders = (req, res, assets) => {
     res.append('Link', '<https://cdn.polyfill.io>;rel=dns-prefetch')
     res.append('Link', `<${polyfillsURL}>;rel=preload;as=script`)
   }
-  if(typeof config.getHTTPHeaders === 'function') {
+  if (typeof config.getHTTPHeaders === 'function') {
     const headers = config.getHTTPHeaders(req, assets)
-    headers.forEach((header) => {res.append(header.name, header.value)})
+    headers.forEach(header => {
+      res.append(header.name, header.value)
+    })
   }
 }
 
@@ -241,7 +243,7 @@ const sendConfigTrailer = (req, state, res) => {
 }
 
 const sendDeferredScript = (res, assets) => {
-  if(assets['defer.js']) {
+  if (assets['defer.js']) {
     res.write(`
 <script type="text/javascript">
 function downloadJSAtOnload() {
