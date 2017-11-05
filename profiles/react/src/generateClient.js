@@ -101,7 +101,7 @@ const main = () => {
 
 ${runRender}
 
-if (!config.serviceworker && 'serviceWorker' in navigator) {
+if (!config.disableServiceWorker && 'serviceWorker' in navigator) {
   navigator.serviceWorker.register('/serviceworker.js')
   .then(function(reg) {
     // registration worked
