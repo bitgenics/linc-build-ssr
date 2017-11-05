@@ -81,7 +81,7 @@ const inits = req => {
   return Promise.all(promises)
 }
 
-const sendInitialHeaders = (res, assets) => {
+const sendInitialHeaders = (req, res, assets) => {
   res.setHeader('Content-Type', 'text/html')
   if (assets['bootstrap.js']) {
     res.append('Link', `</${assets['bootstrap.js']}>;rel=preload;as=script`)
@@ -95,6 +95,10 @@ const sendInitialHeaders = (res, assets) => {
   if (polyfillsURL) {
     res.append('Link', '<https://cdn.polyfill.io>;rel=dns-prefetch')
     res.append('Link', `<${polyfillsURL}>;rel=preload;as=script`)
+  }
+  if(typeof config.getHTTPHeaders === 'function') {
+    const headers = config.getHTTPHeaders(req, assets)
+    headers.forEach((header) => {res.append(header.name, header.value)})
   }
 }
 
@@ -266,7 +270,7 @@ const renderGet = async (req, res, settings) => {
       routeComponent
     )
     res.statusCode = 200
-    sendInitialHeaders(res, assets)
+    sendInitialHeaders(req, res, assets)
     res.write('<!DOCTYPE html><html><head>')
     sendHeadAssets(res, assets)
     sendConfigStaticHead(req, res)
