@@ -1,4 +1,5 @@
 import EventCollector from 'event-collector'
+import auth from 'basic-auth'
 import configFile from 'linc-config-js'
 import assets from 'asset-manifest'
 import strategy from 'server-strategy'
@@ -45,6 +46,22 @@ const initEventCollector = req => {
   return req.eventcollector
 }
 
+const checkAuth = (req, res) => {
+  const credentials = auth(req)
+  if (
+    !credentials ||
+    credentials.name !== config.auth.username ||
+    credentials.pass !== config.auth.password
+  ) {
+    res.statusCode = 401
+    res.setHeader('WWW-Authenticate', `Basic realm="${req.hostinfo.siteName}"`)
+    res.end('<!DOCTYPE html><html><body><h1>Auth Required</h1></body></html>')
+    return false
+  } else {
+    return true
+  }
+}
+
 const redirect = (res, redirectLocation) => {
   res.statusCode = 302
   res.setHeader('Location', redirectLocation.pathname + redirectLocation.search)
@@ -53,6 +70,7 @@ const redirect = (res, redirectLocation) => {
 
 const notfound = res => {
   res.statusCode = 404
+  res.write('<!DOCTYPE html><html><body><h1>Not Found</h1></body></html>')
   res.end()
 }
 
@@ -266,6 +284,9 @@ window.attachEvent("onload", downloadJSAtOnload);
 const renderGet = async (req, res, settings) => {
   try {
     const eventcollector = initEventCollector(req)
+    if (config.auth && !checkAuth(req, res)) {
+      return
+    }
     const getJob = eventcollector.startJob('renderGet')
     const url = req.url
     if (url.length > 1 && !(url.lastIndexOf('/') > 1) && includes(url)) {
