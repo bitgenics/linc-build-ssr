@@ -5,7 +5,7 @@ const renderFn = renderComponent => {
     try {
       resolve(ReactDOMServer.renderToString(renderComponent))
     } catch (e) {
-      resolve('')
+      reject(e)
     }
   })
 }
