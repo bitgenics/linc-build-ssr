@@ -17,7 +17,7 @@ const createConfig = () => {
   } catch (e) {
     if (e.message.includes('Cannot find module "linc-server-config-js')) {
       console.log(
-        "Couldn't find any server-only configuration: 'linc.server.config.js'"
+        "Couldn't find any server-only configuration: 'linc.server.config.js', using defaults"
       )
     } else {
       console.log('Error loading linc.server.config.js', e)
@@ -355,6 +355,7 @@ const renderGet = async (req, res, settings) => {
   } catch (e) {
     console.log('Uhoh!', e)
     req.eventcollector.addError(e)
+    res.end();
   }
 }
 
