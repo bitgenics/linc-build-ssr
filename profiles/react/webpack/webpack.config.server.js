@@ -27,7 +27,7 @@ const createConfig = (options) => {
     ],
     loader: 'url-loader',
     query: {
-      limit: 10000,
+      limit: 10,
       name: '_assets/media/[name].[hash:8].[ext]'
     }
   }
@@ -76,7 +76,7 @@ const createConfig = (options) => {
     target: 'node',
     resolve: {
       alias,
-      extensions: [".js", ".json", ".ts", ".tsx", ".png"],
+      extensions: [".js", ".json", ".jsx"],
       modules: [srcDir, "node_modules", path.resolve(PROJECT_DIR, "node_modules")],
     },
     resolveLoader: {
@@ -97,7 +97,7 @@ const createConfig = (options) => {
           test: /\.svg$/,
           loader: 'svg-url-loader',
           query: {
-            limit: 10000,
+            limit: 10,
             name: '_assets/media/[name].[hash:8].[ext]'
           }
         },
