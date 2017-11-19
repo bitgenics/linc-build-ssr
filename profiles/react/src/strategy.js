@@ -13,7 +13,6 @@ const pickRouter = deps => {
     if (semver.lt(deps['react-router'], '4.0.0')) {
       return 'react-router-v3'
     } else {
-      console.log('Do not support react-routerV4 just yet')
       return 'react-router-v4'
     }
   } else if (deps['react-router-dom']) {
@@ -39,6 +38,13 @@ const pickPreRenders = deps => {
   if (deps['react-redux']) {
     preRenders.push('react-redux')
   }
+  if (deps['styled-components']) {
+    if(deps['babel-plugin-styled-components']) {
+      preRenders.push('styled-components')
+    } else {
+      throw new Error('Need to install "babel-plugin-styled-components" to be able to Server-Side Render styled-components')
+    }
+  }
   return preRenders
 }
 
@@ -50,8 +56,7 @@ const pickRenderer = deps => {
       return 'react16'
     }
   } else {
-    console.error('Only support react in this profile for now')
-    process.exit(-1)
+    throw new Error('Only support react in this profile for now')
   }
 }
 
@@ -59,6 +64,9 @@ const pickAfterRenders = deps => {
   const afterRenders = []
   if (deps['react-loadable']) {
     afterRenders.push('react-loadable')
+  }
+  if (deps['styled-components']) {
+    afterRenders.push('styled-components')
   }
   if (deps['react-helmet']) {
     afterRenders.push('react-helmet')
@@ -86,7 +94,7 @@ const createStrategy = deps => {
     return strategy
   } catch (e) {
     console.error("We couldn't automatically figure out what plugins to use")
-    console.error(e)
+    console.error(e.message)
     process.exit(-1)
   }
 }
