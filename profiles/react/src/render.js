@@ -355,7 +355,7 @@ const renderGet = async (req, res, settings) => {
   } catch (e) {
     console.log('Uhoh!', e)
     req.eventcollector.addError(e)
-    res.end();
+    res.end()
   }
 }
 

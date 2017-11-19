@@ -39,10 +39,12 @@ const pickPreRenders = deps => {
     preRenders.push('react-redux')
   }
   if (deps['styled-components']) {
-    if(deps['babel-plugin-styled-components']) {
+    if (deps['babel-plugin-styled-components']) {
       preRenders.push('styled-components')
     } else {
-      throw new Error('Need to install "babel-plugin-styled-components" to be able to Server-Side Render styled-components')
+      throw new Error(
+        'Need to install "babel-plugin-styled-components" to be able to Server-Side Render styled-components'
+      )
     }
   }
   return preRenders
