@@ -4,8 +4,8 @@ import stats from 'reactloadable'
 
 function getBundles(manifest, moduleIds) {
   return moduleIds.reduce((bundles, moduleId) => {
-    return bundles.concat(manifest[moduleId]);
-  }, []);
+    return bundles.concat(manifest[moduleId])
+  }, [])
 }
 
 const initsFn = () => {
