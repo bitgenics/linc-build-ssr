@@ -101,14 +101,17 @@ const inits = req => {
 
 const sendInitialHeaders = (req, res, assets) => {
   res.setHeader('Content-Type', 'text/html')
-  if (assets['bootstrap.js']) {
-    res.append('Link', `</${assets['bootstrap.js']}>;rel=preload;as=script`)
+  if (assets['manifest.js']) {
+    res.append('Link', `</${assets['manifest.js']}>;rel=preload;as=script`)
   }
   if (assets['vendor.js']) {
     res.append('Link', `</${assets['vendor.js']}>;rel=preload;as=script`)
   }
   if (assets['main.js']) {
     res.append('Link', `</${assets['main.js']}>;rel=preload;as=script`)
+  }
+  if (assets['defer.js']) {
+    res.append('Link', `</${assets['defer.js']}>;rel=preload;as=script`)
   }
   if (polyfillsURL) {
     res.append('Link', '<https://cdn.polyfill.io>;rel=dns-prefetch')
@@ -345,6 +348,7 @@ const renderGet = async (req, res, settings) => {
     if (polyfillsURL) {
       res.write(`<script src="${polyfillsURL}"></script>`)
     }
+    res.write(`<script src="/${assets['manifest.js']}"></script>`)
     res.write(`<script src="/${assets['vendor.js']}"></script>`)
     res.write(`<script src="/${assets['main.js']}"></script>`)
     if (trailer) res.write(trailer)

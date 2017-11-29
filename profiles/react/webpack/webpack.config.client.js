@@ -78,6 +78,9 @@ const createConfig = (options) => {
         module.userRequest.indexOf('/node_modules/') >= 0
       )
     }),
+    new webpack.optimize.CommonsChunkPlugin({
+      name: ['vendor', 'manifest']
+    }),
     // extract css as text from js
     new ExtractTextPlugin({
       filename: '_assets/css/[name].[chunkhash:8].css'
