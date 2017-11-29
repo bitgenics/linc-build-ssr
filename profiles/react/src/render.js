@@ -38,8 +38,10 @@ const initEventCollector = req => {
   const packageJson = require(__dirname + '/../package.json')
   req.eventcollector = req.eventcollector || new EventCollector({})
   req.eventcollector.addMeta({
-    rendererVersion: packageJson.version,
-    renderProfile: packageJson.name
+    renderer: {
+      version: packageJson.version,
+      profile: packageJson.name
+    }
   })
   if (global.window && window.localStorage) window.localStorage.clear()
   if (global.window && window.sessionStorage) window.sessionStorage.clear()
@@ -267,17 +269,17 @@ const sendDeferredScript = (res, assets) => {
   if (assets['defer.js']) {
     res.write(`
 <script type="text/javascript">
-function downloadJSAtOnload() {
+function runDeferScript() {
   var element = document.createElement("script");
   element.src = "/${assets['defer.js']}";
   document.body.appendChild(element);
 }
 if (window.addEventListener) {
-  window.addEventListener("load", downloadJSAtOnload, false);
+  window.addEventListener("load", runDeferScript, false);
 } else if (window.attachEvent) {
-window.attachEvent("onload", downloadJSAtOnload);
+window.attachEvent("onload", runDeferScript);
 } else {
-  window.onload = downloadJSAtOnload;
+  window.onload = runDeferScript;
 }
 </script>
       `)
