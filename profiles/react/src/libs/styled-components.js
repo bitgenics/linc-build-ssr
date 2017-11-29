@@ -13,7 +13,6 @@ const preRendersFn = (req, renderComponent, state) => {
 
 const afterRendersFn = (req, config, assets) => {
   const styleTags = req.styledcomponents.sheet.getStyleTags()
-  console.log('StyleTags', styleTags)
   return { head: { style: styleTags } }
 }
 
