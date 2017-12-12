@@ -1,6 +1,7 @@
 const path = require('path');
 const fs = require('fs')
 const webpack = require('webpack');
+const autoprefixer = require('autoprefixer');
 const ExtractTextPlugin = require("extract-text-webpack-plugin");
 const ManifestPlugin = require('webpack-manifest-plugin');
 const workboxPlugin = require('workbox-webpack-plugin');
@@ -35,16 +36,45 @@ const createConfig = (options) => {
   }
 
   const extractPlugin = ExtractTextPlugin.extract({
-    fallback: { loader: 'style-loader', options: { sourceMap: true } },
-    use:[{ 
-      loader: 'css-loader', 
-      options: {
+    fallback: { 
+      loader: 'style-loader',
+      options: { 
         sourceMap: true,
-        modules: common.packageJson.linc.cssModules || false,
-        importLoaders: 1,
-        localIdentName: "[name]__[local]___[hash:base64:5]"
+        hmr: false,
       }
-    }]
+    },
+    use:[
+      { 
+        loader: 'css-loader', 
+        options: {
+          sourceMap: true,
+          modules: common.packageJson.linc.cssModules || false,
+          importLoaders: 1,
+          minimize: true,
+          localIdentName: "[name]__[local]___[hash:base64:5]"
+        }
+      },
+      {
+        loader: 'postcss-loader',
+        options: {
+          // Necessary for external CSS imports to work
+          // https://github.com/facebookincubator/create-react-app/issues/2677
+          ident: 'postcss',
+          plugins: () => [
+            require('postcss-flexbugs-fixes'),
+            autoprefixer({
+              browsers: [
+                '>1%',
+                'last 4 versions',
+                'Firefox ESR',
+                'not ie < 9', // React doesn't support IE8 anyway
+              ],
+              flexbox: 'no-2009',
+            }),
+          ],
+        },
+      },
+    ]
   })
 
   const css_loader = {
