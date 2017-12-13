@@ -126,6 +126,9 @@ const build = async callback => {
   await runWebpack(server_config, getWebpackOptions(strategy, 'server'))
   await staticCopy
   console.log('Created server package')
+
+  console.log('We have created an overview of your bundles in dist/bundle-report.html')
+
   callback()
 }
 

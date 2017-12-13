@@ -6,6 +6,7 @@ const ExtractTextPlugin = require("extract-text-webpack-plugin");
 const ManifestPlugin = require('webpack-manifest-plugin');
 const workboxPlugin = require('workbox-webpack-plugin');
 const common = require('./webpack-common.js');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 const LINC_DIR = common.LINC_DIR;
 const PROJECT_DIR = common.PROJECT_DIR;
@@ -138,6 +139,16 @@ const createConfig = (options) => {
         screw_ie8: true
       },
       comments: false
+    }),
+    new BundleAnalyzerPlugin({
+      analyzerMode: 'static',
+      reportFilename: '../bundle-report.html',
+      defaultSizes: 'gzip',
+      openAnalyzer: false,
+      generateStatsFile: false,
+      statsFilename: '../webpack-stats.json',
+      statsOptions: null,
+      logLevel: 'error'
     })
   ]
 
