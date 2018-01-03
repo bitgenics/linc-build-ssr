@@ -134,4 +134,16 @@ const build = async callback => {
   callback()
 }
 
-module.exports = build
+const getInitQuestions = () => {
+  return {
+    sourceDir: {
+      text: 'Please provide the directory containing your source code.',
+      dflt: 'src'
+    }
+  }
+}
+
+module.exports = {
+  build,
+  getInitQuestions
+}
