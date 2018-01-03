@@ -137,7 +137,7 @@ const build = async callback => {
 const getInitQuestions = () => {
   return {
     sourceDir: {
-      text: 'Please provide the directory containing your source code.',
+      text: 'Please provide the directory containing your source code',
       dflt: 'src'
     }
   }
