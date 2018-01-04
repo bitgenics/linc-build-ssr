@@ -134,6 +134,10 @@ const build = async callback => {
   callback()
 }
 
+const getConfigSampleFiles = () => {
+  return ['linc.config.server.js', 'linc.config.client.js']
+}
+
 const getInitQuestions = () => {
   return {
     sourceDir: {
@@ -145,5 +149,6 @@ const getInitQuestions = () => {
 
 module.exports = {
   build,
+  getConfigSampleFiles,
   getInitQuestions
 }
