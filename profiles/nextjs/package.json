@@ -15,6 +15,7 @@
     "prepare": "npm run build"
   },
   "dependencies": {
+    "@bitgenics/cachebust": "^0.1.0",
     "babel-core": "^6.25.0",
     "babel-loader": "^7.1.1",
     "babel-preset-env": "^1.6.0",

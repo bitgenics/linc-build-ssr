@@ -101,7 +101,7 @@ const createConfig = ({ targetDir = 'dist' } = {}) => {
     plugins: [
       new webpack.DefinePlugin({
         'process.env.NODE_ENV': JSON.stringify('production'),
-        'window': undefined
+        window: undefined
       }),
       new webpack.optimize.LimitChunkCountPlugin({
         maxChunks: 1

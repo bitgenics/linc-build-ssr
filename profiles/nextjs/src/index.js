@@ -2,6 +2,7 @@ const path = require('path')
 const fse = require('fs-extra')
 const glob = require('glob')
 const webpack = require('webpack')
+const cachebust = require('@bitgenics/cachebust')
 
 const server_config = require('./webpack.config.server.js')
 const next_build = require(`${process.cwd()}/node_modules/next/dist/server/build`)
@@ -9,6 +10,7 @@ const next_build = require(`${process.cwd()}/node_modules/next/dist/server/build
 
 const nextDir = path.resolve('./.next')
 const nextDistDir = path.join(nextDir, 'dist')
+const nextStaticDir = path.resolve('./static')
 const lincDir = path.resolve('./dist')
 const lincStaticDir = path.join(lincDir, 'static')
 
@@ -44,11 +46,10 @@ const copyNextFiles = async () => {
       path.join(nextFilesDir, buildStats[file].hash, file)
     )
   }
-  copy(path.join(nextDir, 'bundles', 'pages'), path.join(nextFilesDir, buildId, 'page'))
-}
-
-const copyStaticFiles = async () => {
-  copy(path.resolve('.', 'static'), path.join(lincStaticDir, 'static'))
+  copy(
+    path.join(nextDir, 'bundles', 'pages'),
+    path.join(nextFilesDir, buildId, 'page')
+  )
 }
 
 const createBuildInfoFile = async dest => {
@@ -59,13 +60,13 @@ const createBuildInfoFile = async dest => {
   )
 
   const buildId = await fse.readFile(path.join(nextDir, 'BUILD_ID'), 'utf-8')
-  
+
   const chunkDir = path.join(nextDistDir, 'chunk')
   const chunkFiles = glob.sync(`${chunkDir}/**/*.js`)
   const chunks = chunkFiles.map(
     file => `chunks['${path.basename(file)}'] = true`
   )
-  
+
   const file = `
 const buildId = '${buildId}'
 
@@ -93,12 +94,28 @@ const build_server = async () => {
   })
 }
 
+const cachebust_static = async () => {
+  const tmpStaticDir = path.resolve('./.next/static')
+  await cachebust({
+    distDir: './.next',
+    staticSrc: nextStaticDir,
+    currentPrefix: 'static',
+    targetPrefix: '/_assets',
+    staticDest: tmpStaticDir,
+    moveRootFiles: true,
+    overwrite: false
+  })
+  copy(tmpStaticDir, lincStaticDir)
+}
+
 const build_client = async () => {
   await fse.remove('./.next')
   await fse.remove('./dist')
   await next_build('.', nextConfig)
+  if(fse.pathExistsSync(nextStaticDir)) {
+    await cachebust_static()
+  }
   await copyNextFiles()
-  await copyStaticFiles()
 }
 
 module.exports = async callback => {
@@ -108,6 +125,7 @@ module.exports = async callback => {
     await build_server()
     callback()
   } catch (e) {
+    console.log(e)
     callback(e)
   }
 }
