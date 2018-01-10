@@ -30,7 +30,11 @@ const renderGet = async (req, res, settings) => {
   const { status, path, query, page } = route(req)
   try {
     res.statusCode = status
-    const html = await render(req, res, path, query, { page, buildInfo, settings })
+    const html = await render(req, res, path, query, {
+      page,
+      buildInfo,
+      settings
+    })
     res.end(html)
   } catch (err) {
     console.log('Error', err)

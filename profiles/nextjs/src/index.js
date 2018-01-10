@@ -31,7 +31,7 @@ const copy = async (src, dest) => {
   }
 }
 
-const copyNextFiles = async (buildStats) => {
+const copyNextFiles = async buildStats => {
   const nextFilesDir = path.join(lincStaticDir, nextConfig.assetPrefix, '_next')
   if (!await fse.pathExists(nextDir)) {
     console.log(`Directory: ${fromDir} does not exist`)
@@ -105,13 +105,16 @@ const cachebust_static = async () => {
     moveRootFiles: true,
     overwrite: false
   })
-  fse.writeFile(path.join(lincDir, 'cachebust-report.json'), JSON.stringify(results, null, 4))
+  fse.writeFile(
+    path.join(lincDir, 'cachebust-report.json'),
+    JSON.stringify(results, null, 4)
+  )
   copy(tmpStaticDir, lincStaticDir)
 }
 
 const build_client = async () => {
   await next_build('.', nextConfig)
-  if(fse.pathExistsSync(nextStaticDir)) {
+  if (fse.pathExistsSync(nextStaticDir)) {
     await cachebust_static()
   }
   return require(path.join(nextDir, 'build-stats.json'))
