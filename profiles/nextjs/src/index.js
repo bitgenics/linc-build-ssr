@@ -14,7 +14,7 @@ const nextStaticDir = path.resolve('./static')
 const lincDir = path.resolve('./dist')
 const lincStaticDir = path.join(lincDir, 'static')
 
-const buildStats = require(path.join(nextDir, 'build-stats.json'))
+process.env.NODE_ENV = 'production'
 
 const nextConfig = {
   assetPrefix: '/_assets',
@@ -31,7 +31,7 @@ const copy = async (src, dest) => {
   }
 }
 
-const copyNextFiles = async () => {
+const copyNextFiles = async (buildStats) => {
   const nextFilesDir = path.join(lincStaticDir, nextConfig.assetPrefix, '_next')
   if (!await fse.pathExists(nextDir)) {
     console.log(`Directory: ${fromDir} does not exist`)
@@ -52,7 +52,7 @@ const copyNextFiles = async () => {
   )
 }
 
-const createBuildInfoFile = async dest => {
+const createBuildInfoFile = async (dest, buildStats) => {
   const pagesDir = path.join(path.resolve(nextDistDir), 'pages')
   const pageFiles = glob.sync(`${pagesDir}/**/*.js`)
   const pages = pageFiles.map(
@@ -96,7 +96,7 @@ const build_server = async () => {
 
 const cachebust_static = async () => {
   const tmpStaticDir = path.resolve('./.next/static')
-  await cachebust({
+  const results = await cachebust({
     distDir: './.next',
     staticSrc: nextStaticDir,
     currentPrefix: 'static',
@@ -105,23 +105,26 @@ const cachebust_static = async () => {
     moveRootFiles: true,
     overwrite: false
   })
+  fse.writeFile(path.join(lincDir, 'cachebust-report.json'), JSON.stringify(results, null, 4))
   copy(tmpStaticDir, lincStaticDir)
 }
 
 const build_client = async () => {
-  await fse.remove('./.next')
-  await fse.remove('./dist')
   await next_build('.', nextConfig)
   if(fse.pathExistsSync(nextStaticDir)) {
     await cachebust_static()
   }
-  await copyNextFiles()
+  return require(path.join(nextDir, 'build-stats.json'))
 }
 
 module.exports = async callback => {
   try {
-    await build_client()
-    await createBuildInfoFile(path.join(lincDir, 'build_info.js'))
+    await fse.remove('./.next')
+    await fse.remove('./dist')
+    await fse.ensureDir(lincDir)
+    const buildStats = await build_client()
+    await copyNextFiles(buildStats)
+    await createBuildInfoFile(path.join(lincDir, 'build_info.js'), buildStats)
     await build_server()
     callback()
   } catch (e) {
