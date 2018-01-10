@@ -2,9 +2,9 @@
 # yarn lockfile v1
 
 
-"@bitgenics/cachebust-hash@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@bitgenics/cachebust-hash/-/cachebust-hash-1.0.0.tgz#b22aa16f5fdb2b227657060f9ead76163f802463"
+"@bitgenics/cachebust@^0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@bitgenics/cachebust/-/cachebust-0.2.0.tgz#25f8b407a71cff2b09038f069c196b9a190f39d1"
   dependencies:
     fs-extra "^5.0.0"
     globby "^7.1.1"
