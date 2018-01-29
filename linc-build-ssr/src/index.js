@@ -23,11 +23,7 @@ const build = (config, packageJson, callback) => {
     process.cwd(),
     `node_modules/${profile}`
   ))
-  if (builder.build && typeof builder.build === 'function') {
-    return builder.build(callback)
-  }
-
-  return builder(callback)
+  return builder({ stdin: process.stdin, stdout: process.stdout }, callback)
 }
 
 module.exports = build

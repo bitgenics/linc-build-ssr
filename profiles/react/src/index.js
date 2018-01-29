@@ -1,6 +1,6 @@
 const path = require('path')
 const webpack = require('webpack')
-const fse = require('fs-extra')
+const fs = require('fs-extra')
 
 const server_config = require('../webpack/webpack.config.server.js')
 const client_config = require('../webpack/webpack.config.client.js')
@@ -14,6 +14,9 @@ const DIST_DIR = path.resolve(PROJECT_DIR, 'dist')
 const MODULES_DIR = path.resolve(PROJECT_DIR, 'node_modules')
 const LIB_DIR = path.resolve(DIST_DIR, 'lib')
 const packageJson = require(path.resolve(PROJECT_DIR, 'package.json'))
+
+let stdin = process.stdin
+let stdout = process.stdout
 
 const mapValues = (obj, iterator) => {
   const keys = Object.keys(obj)
@@ -56,7 +59,7 @@ const copyStatic = async () => {
     const dirname = path.basename(src)
     const dest = path.resolve(DIST_DIR, 'static', dirname)
     console.log(`Copying ${src} to ${dest}`)
-    return fse.copy(src, dest, {
+    return fs.copy(src, dest, {
       overwrite: true,
       dereference: true,
       preserveTimestamps: true
@@ -104,7 +107,66 @@ const getWebpackOptions = (strategy, env) => {
   return options
 }
 
-const build = async callback => {
+const readOnce = () =>
+  new Promise((resolve, reject) => {
+    return stdin.once('data', data => {
+      return resolve(data)
+    })
+  })
+
+const ask = async (question, suggestion) => {
+  stdin.resume()
+  stdout.write(`${question}: `)
+
+  let answer = await readOnce()
+  if (answer) {
+    answer = answer.toString().trim()
+    if (answer.length > 0) return answer
+  }
+  stdout.write(`${suggestion}\n`)
+  return ask(question, suggestion)
+}
+
+const getSourceDir = async () => {
+  return ask(
+    'Directory containing your source code',
+    'Please provide a valid directory.'
+  )
+}
+
+const copyExampleConfigFiles = async linc => {
+  console.log('copyExampleConfigFiles')
+  const configSampleFiles = ['linc.config.server.js', 'linc.config.client.js']
+
+  const srcDir = path.resolve('../config_samples')
+  const destDir = linc.sourceDir
+
+  // We're done if there are no example configuration files, or no destination dir provided
+  if (!fs.existsSync(srcDir)) return
+  if (!destDir) return
+
+  const promises = _.map(configSampleFiles, f => {
+    const src = path.resolve(srcDir, f)
+    console.log(`${src} -> ${destDir}`)
+    fs.copySync(src, destDir)
+  })
+  return Promise.all(promises)
+}
+
+const postBuild = async () => {
+  const linc = packageJson.linc || {}
+  linc.sourceDir = await getSourceDir()
+  await copyExampleConfigFiles(linc)
+}
+
+const build = async (opts, callback) => {
+  if (!callback) {
+    callback = opts
+  } else {
+    stdin = opts.stdin || stdin
+    stdout = opts.stdout || stdout
+  }
+
   const strategy = createStrategy(getDependencies())
   await generateClient(path.resolve(DIST_DIR, 'client.js'), strategy)
   const serverStrategy = generateServerStrategy(
@@ -131,24 +193,10 @@ const build = async callback => {
     'We have created an overview of your bundles in dist/bundle-report.html'
   )
 
+  console.log('Running post build operations')
+  await postBuild()
+
   callback()
 }
 
-const getConfigSampleFiles = () => {
-  return ['linc.config.server.js', 'linc.config.client.js']
-}
-
-const getInitQuestions = () => {
-  return {
-    sourceDir: {
-      text: 'Please provide the directory containing your source code',
-      dflt: 'src'
-    }
-  }
-}
-
-module.exports = {
-  build,
-  getConfigSampleFiles,
-  getInitQuestions
-}
+module.exports = build
