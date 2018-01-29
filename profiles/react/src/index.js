@@ -2,6 +2,7 @@ const _ = require('underscore')
 const path = require('path')
 const webpack = require('webpack')
 const fs = require('fs-extra')
+const writePkg = require('write-pkg')
 
 const server_config = require('../webpack/webpack.config.server.js')
 const client_config = require('../webpack/webpack.config.client.js')
@@ -139,7 +140,8 @@ const getSourceDir = async () => {
 }
 
 const copyExampleConfigFiles = async linc => {
-  const configSampleFiles = ['linc.config.server.js', 'linc.config.client.js']
+  // const configSampleFiles = ['linc.config.server.js', 'linc.config.client.js']
+  const configSampleFiles = ['linc.config.js']
 
   const srcDir = path.resolve(
     PROJECT_DIR,
@@ -171,7 +173,10 @@ const copyExampleConfigFiles = async linc => {
 
 const postBuild = async () => {
   const linc = packageJson.linc || {}
-  linc.sourceDir = await getSourceDir()
+  if (!linc.sourceDir) {
+    linc.sourceDir = await getSourceDir()
+    await writePkg(packageJson)
+  }
   await copyExampleConfigFiles(linc)
 }
 
