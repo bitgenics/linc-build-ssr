@@ -1,3 +1,4 @@
+const _ = require('underscore')
 const path = require('path')
 const webpack = require('webpack')
 const fs = require('fs-extra')
@@ -121,7 +122,10 @@ const ask = async (question, suggestion) => {
   let answer = await readOnce()
   if (answer) {
     answer = answer.toString().trim()
-    if (answer.length > 0) return answer
+    if (answer.length > 0) {
+      console.log()
+      return answer
+    }
   }
   stdout.write(`${suggestion}\n`)
   return ask(question, suggestion)
@@ -135,20 +139,32 @@ const getSourceDir = async () => {
 }
 
 const copyExampleConfigFiles = async linc => {
-  console.log('copyExampleConfigFiles')
   const configSampleFiles = ['linc.config.server.js', 'linc.config.client.js']
 
-  const srcDir = path.resolve('../config_samples')
+  const srcDir = path.resolve(
+    PROJECT_DIR,
+    `node_modules/linc-profile-generic-react/config_samples`
+  )
   const destDir = linc.sourceDir
 
-  // We're done if there are no example configuration files, or no destination dir provided
-  if (!fs.existsSync(srcDir)) return
-  if (!destDir) return
+  if (!fs.existsSync(srcDir)) {
+    console.log('Did not find any example configuration files to copy')
+    return
+  }
+  if (!destDir) {
+    // eslint-disable-next-line prettier/prettier
+    console.log('No destination directory found for example configuration files')
+    return
+  }
 
   const promises = _.map(configSampleFiles, f => {
     const src = path.resolve(srcDir, f)
-    console.log(`${src} -> ${destDir}`)
-    fs.copySync(src, destDir)
+    try {
+      fs.copySync(src, destDir)
+      console.log(`    ${src} -> ${destDir}`)
+    } catch (e) {
+      // Silently fail non-existent files?
+    }
   })
   return Promise.all(promises)
 }
@@ -189,12 +205,12 @@ const build = async (opts, callback) => {
   await staticCopy
   console.log('Created server package')
 
+  console.log('Running post build operations')
+  await postBuild()
+
   console.log(
     'We have created an overview of your bundles in dist/bundle-report.html'
   )
-
-  console.log('Running post build operations')
-  await postBuild()
 
   callback()
 }
