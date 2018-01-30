@@ -109,12 +109,7 @@ const getWebpackOptions = (strategy, env) => {
   return options
 }
 
-const readOnce = () =>
-  new Promise((resolve, reject) => {
-    return stdin.once('data', data => {
-      return resolve(data)
-    })
-  })
+const readOnce = () => new Promise(resolve => stdin.once('data', resolve))
 
 const ask = async (question, suggestion) => {
   stdin.resume()
@@ -124,7 +119,6 @@ const ask = async (question, suggestion) => {
   if (answer) {
     answer = answer.toString().trim()
     if (answer.length > 0) {
-      console.log()
       return answer
     }
   }
@@ -139,37 +133,40 @@ const getSourceDir = async () => {
   )
 }
 
-const copyExampleConfigFiles = async linc => {
-  // const configSampleFiles = ['linc.config.server.js', 'linc.config.client.js']
-  const configSampleFiles = ['linc.config.js']
+const copyExampleConfigFiles = linc =>
+  new Promise((resolve, reject) => {
+    // const configSampleFiles = ['linc.config.server.js', 'linc.config.client.js']
+    const configSampleFiles = ['linc.config.js']
 
-  const srcDir = path.resolve(
-    PROJECT_DIR,
-    `node_modules/linc-profile-generic-react/config_samples`
-  )
-  const destDir = linc.sourceDir
+    const destDir = linc.sourceDir
+    const srcDir = path.resolve(
+      PROJECT_DIR,
+      `node_modules/linc-profile-generic-react/config_samples`
+    )
 
-  if (!fs.existsSync(srcDir)) {
-    console.log('Did not find any example configuration files to copy')
-    return
-  }
-  if (!destDir) {
-    // eslint-disable-next-line prettier/prettier
-    console.log('No destination directory found for example configuration files')
-    return
-  }
-
-  const promises = _.map(configSampleFiles, f => {
-    const src = path.resolve(srcDir, f)
-    try {
-      fs.copySync(src, destDir)
-      console.log(`    ${src} -> ${destDir}`)
-    } catch (e) {
-      // Silently fail non-existent files?
+    if (!fs.existsSync(srcDir)) {
+      console.log('Did not find any example configuration files to copy')
+      return resolve()
     }
+    if (!destDir) {
+      // eslint-disable-next-line prettier/prettier
+      console.log('No destination directory found for example configuration files')
+      return resolve()
+    }
+
+    configSampleFiles.forEach(f => {
+      const src = path.resolve(srcDir, f)
+      const dst = path.resolve(destDir, f)
+      try {
+        fs.copySync(src, dst)
+        console.log(`    COPY ${f} -> ${destDir}`)
+      } catch (e) {
+        console.log(e)
+        // Silently fail non-existent files?
+      }
+    })
+    return resolve()
   })
-  return Promise.all(promises)
-}
 
 const postBuild = async () => {
   const linc = packageJson.linc || {}
