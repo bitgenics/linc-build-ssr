@@ -1,5 +1,5 @@
-import reducer from './reducers';
-import routes from './routes';
+import reducer from './reducers'
+import routes from './routes'
 import thunk from 'redux-thunk'
 import Helmet from 'react-helmet'
 
@@ -9,29 +9,29 @@ import Helmet from 'react-helmet'
 const config = {
   polyfills: 'default,fetch,Symbol,Symbol.iterator,Array.prototype.find',
   requestExtendedUserInfo: false,
-	redux: {
-		reducer: reducer,
+  redux: {
+    reducer: reducer,
     //initialState: {}
-		middleware: [ thunk ]
+    middleware: [thunk]
     //enhancers: []
     //parseServerState: (serverState) => {
     // If you have any special parsing you need to do of the plain
     // plain JSON Object coming from the server you can do that here.
     // Useful for example for immutable libraries like Immutable.js
     //}
-	},
-	router: {
-		routes: routes	
-	},
+  },
+  router: {
+    routes: routes
+  },
   head: {
     helmet: Helmet
   },
-  init: (env) => {
+  init: env => {
     //you can do any custom initialization.
     //You have available the following objects on env:
     //req (request), userInfo, store, config & history
   }
-};
+}
 
 export default config
 
