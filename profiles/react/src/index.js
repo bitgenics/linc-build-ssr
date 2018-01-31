@@ -112,7 +112,6 @@ const getWebpackOptions = (strategy, env) => {
 const readOnce = () => new Promise(resolve => stdin.once('data', resolve))
 
 const ask = async (question, suggestion) => {
-  stdin.resume()
   stdout.write(`${question}: `)
 
   let answer = await readOnce()
@@ -127,10 +126,13 @@ const ask = async (question, suggestion) => {
 }
 
 const getSourceDir = async () => {
-  return ask(
+  stdin.resume()
+  const srcDir = await ask(
     'Directory containing your source code',
     'Please provide a valid directory.'
   )
+  stdin.pause()
+  return srcDir
 }
 
 const copyExampleConfigFiles = linc =>
