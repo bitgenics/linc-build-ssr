@@ -5,6 +5,12 @@ import { loadGetInitialProps } from 'next/dist/lib/utils'
 import Head, { defaultHead } from 'next/dist/lib/head'
 import App from 'next/dist/lib/app'
 import { flushChunks } from 'next/dist/lib/dynamic'
+import semver from 'semver'
+
+import packageJson from 'next/package.json'
+
+const oldChunks = semver.lt(packageJson.version, '4.3.0')
+const loadChunks = oldChunks ? oldLoadChunks : newLoadChunks
 
 async function render (req, res, pathname, query, {
   err,
@@ -47,7 +53,8 @@ async function render (req, res, pathname, query, {
     } finally {
       head = Head.rewind() || defaultHead()
     }
-    const chunks = loadChunks({ availableChunks: buildInfo.chunks })
+
+    const chunks = loadChunks ({ availableChunks: buildInfo.chunks })
 
     return { html, head, errorHtml, chunks }
   }
@@ -80,7 +87,7 @@ async function render (req, res, pathname, query, {
   return '<!DOCTYPE html>' + renderToStaticMarkup(doc)
 }
 
-function loadChunks ({ availableChunks }) {
+function oldLoadChunks ({ availableChunks }) {
 
   const flushedChunks = flushChunks()
   const validChunks = []
@@ -92,6 +99,24 @@ function loadChunks ({ availableChunks }) {
   }
 
   return validChunks
+}
+
+function newLoadChunks ({ availableChunks }) {
+  const flushedChunks = flushChunks()
+  const response = {
+    names: [],
+    filenames: []
+  }
+
+  for (var chunk of flushedChunks) {
+    const filename = availableChunks[chunk]
+    if (filename) {
+      response.names.push(chunk)
+      response.filenames.push(filename)
+    }
+  }
+
+  return response
 }
 
 export default render
