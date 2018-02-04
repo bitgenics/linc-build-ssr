@@ -66,7 +66,10 @@ async function render (req, res, pathname, query, {
       buildStats: buildInfo.buildStats,
       assetPrefix,
       nextExport: false,
-      err: (err) ? { message: '500 - Internal Server Error.' } : null
+      err: (err) ? { message: '500 - Internal Server Error.' } : null,
+    },
+    __LINC_DATA__: {
+      settings
     },
     dev: false,
     dir: '.',

@@ -27,8 +27,8 @@ const route = req => {
 }
 
 const renderGet = async (req, res, settings) => {
-  const { status, path, query, page } = route(req)
   try {
+    const { status, path, query, page } = route(req)
     res.statusCode = status
     const html = await render(req, res, path, query, {
       page,
