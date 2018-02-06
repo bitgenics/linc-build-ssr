@@ -1,7 +1,7 @@
 const configFragment = {
   imports: [
     `import reducer from './reducers';`,
-    `//import thunk from 'redux-thunk'`
+    `import thunk from 'redux-thunk';`
   ],
   values: {
     redux: {
@@ -16,13 +16,13 @@ const configFragment = {
         comment: 'Any initial state you want to pass on server & client'
       },
       middleware: {
-        default: [],
+        default: '[]',
         example: '[ thunk ]',
         required: false,
         comment: 'Any middleware you want to add to the store'
       },
       enhancers: {
-        default: [],
+        default: '[]',
         required: false,
         comment: 'Any enhancers you want to add to the store'
       },
