@@ -104,6 +104,7 @@ const getConfigFragments = strategy => {
       } catch (e) {}
     })
     .filter(e => !!e)
+
   const empty = { imports: [], values: [] }
   return all.reduce((acc, curr) => {
     if (curr.imports) acc.imports = acc.imports.concat(curr.imports)
@@ -120,6 +121,7 @@ const getWebpackOptions = (strategy, env) => {
       } catch (e) {}
     })
     .filter(e => !!e)
+
   const empty = { alias: {}, babel: { presets: [], plugins: [] }, plugins: [] }
   const options = all.map(e => e(DIST_DIR)[env]).reduce(mergeOptions, empty)
   return options
@@ -188,15 +190,19 @@ const createConfigFileContents = all => {
   })
 
   values = values.concat('}')
-  return [imports, '', values.join('\n')].join('\n')
+  return [imports, '', values.join('\n'), ''].join('\n')
 }
 
 const createConfigFile = strategy =>
   new Promise((resolve, reject) => {
     const all = getConfigFragments(strategy)
     const contents = createConfigFileContents(all)
-    console.log(contents)
-    return resolve()
+    const configFile = path.join(process.cwd(), 'src/linc.config.js')
+    fs.writeFile(configFile, contents, err => {
+      if (err) return reject(err)
+
+      return resolve()
+    })
   })
 
 const postBuild = async strategy => {
