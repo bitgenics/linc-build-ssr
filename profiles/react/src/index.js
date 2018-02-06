@@ -96,6 +96,22 @@ const mergeOptions = (acc, curr) => {
   return acc
 }
 
+const getConfigFragments = strategy => {
+  const all = strategy.libs
+    .map(lib => {
+      try {
+        return require(`./libs/config_client/${lib}`).configFragment
+      } catch (e) {}
+    })
+    .filter(e => !!e)
+  const empty = { imports: [], values: [] }
+  return all.reduce((acc, curr) => {
+    if (curr.imports) acc.imports = acc.imports.concat(curr.imports)
+    if (curr.values) acc.values = acc.values.concat(curr.values)
+    return acc
+  }, empty)
+}
+
 const getWebpackOptions = (strategy, env) => {
   const all = strategy.libs
     .map(lib => {
@@ -103,7 +119,7 @@ const getWebpackOptions = (strategy, env) => {
         return require(`./libs/config_client/${lib}`).webpackConfig
       } catch (e) {}
     })
-    .filter(e => e)
+    .filter(e => !!e)
   const empty = { alias: {}, babel: { presets: [], plugins: [] }, plugins: [] }
   const options = all.map(e => e(DIST_DIR)[env]).reduce(mergeOptions, empty)
   return options
@@ -135,48 +151,61 @@ const getSourceDir = async () => {
   return srcDir
 }
 
-const copyExampleConfigFiles = linc =>
-  new Promise((resolve, reject) => {
-    // const configSampleFiles = ['linc.config.server.js', 'linc.config.client.js']
-    const configSampleFiles = ['linc.config.js']
+const notLast = (ar, x) => ar.indexOf(x) < ar.length - 1
 
-    const destDir = linc.sourceDir
-    const srcDir = path.resolve(
-      PROJECT_DIR,
-      `node_modules/linc-profile-generic-react/config_samples`
-    )
+const createConfigFileContents = all => {
+  const imports = all.imports.join('\n')
+  let values = []
+  values = values.concat('const config = {')
+  values = values.concat(
+    "    polyfills: 'default,fetch,Symbol,Symbol.iterator,Array.prototype.find',"
+  )
+  values = values.concat('    requestExtendedUserInfo: true,')
 
-    if (!fs.existsSync(srcDir)) {
-      console.log('Did not find any example configuration files to copy')
-      return resolve()
-    }
-    if (!destDir) {
-      // eslint-disable-next-line prettier/prettier
-      console.log('No destination directory found for example configuration files')
-      return resolve()
-    }
+  all.values.map(x => {
+    // Options
+    Object.keys(x).map(y => {
+      values = values.concat(`    ${y}: {`)
 
-    configSampleFiles.forEach(f => {
-      const src = path.resolve(srcDir, f)
-      const dst = path.resolve(destDir, f)
-      try {
-        fs.copySync(src, dst)
-        console.log(`    COPY ${f} -> ${destDir}`)
-      } catch (e) {
-        console.log(e)
-        // Silently fail non-existent files?
+      // Suboptions
+      const subOptionKeys = Object.keys(x[y])
+      subOptionKeys.map(z => {
+        const opt = x[y][z]
+        let s
+        if (opt.example) {
+          s = `        ${z}: ${opt.example}`
+        } else if (opt.default) {
+          s = `        ${z}: ${opt.default}`
+        }
+        if (s) values = values.concat(notLast(subOptionKeys, z) ? s + ',' : s)
+      })
+      let t = '    }'
+      if (notLast(all.values, x)) {
+        t = t + ','
       }
+      values = values.concat(t)
     })
+  })
+
+  values = values.concat('}')
+  return [imports, '', values.join('\n')].join('\n')
+}
+
+const createConfigFile = strategy =>
+  new Promise((resolve, reject) => {
+    const all = getConfigFragments(strategy)
+    const contents = createConfigFileContents(all)
+    console.log(contents)
     return resolve()
   })
 
-const postBuild = async () => {
+const postBuild = async strategy => {
   const linc = packageJson.linc || {}
   if (!linc.sourceDir) {
     linc.sourceDir = await getSourceDir()
     await writePkg(packageJson)
   }
-  await copyExampleConfigFiles(linc)
+  await createConfigFile(strategy)
 }
 
 const build = async (opts, callback) => {
@@ -188,6 +217,7 @@ const build = async (opts, callback) => {
   }
 
   const strategy = createStrategy(getDependencies())
+  await postBuild(strategy)
   await generateClient(path.resolve(DIST_DIR, 'client.js'), strategy)
   const serverStrategy = generateServerStrategy(
     path.resolve(DIST_DIR, 'server-strategy.js'),
@@ -210,7 +240,7 @@ const build = async (opts, callback) => {
   console.log('Created server package')
 
   console.log('Running post build operations')
-  await postBuild()
+  await postBuild(strategy)
 
   console.log(
     'We have created an overview of your bundles in dist/bundle-report.html'
