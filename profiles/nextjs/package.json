@@ -1,6 +1,6 @@
 {
   "name": "linc-profile-nextjs",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "A Linc Profile for Next.js",
   "main": "src/index.js",
   "repository": "https://github.com/bitgenics/linc-build-ssr",
@@ -10,7 +10,7 @@
   "scripts": {
     "lint": "eslint src test --fix",
     "clean": "rimraf dist",
-    "build": "npm run clean; npm run lint; babel src -d dist -s",
+    "build": "npm run clean; babel src -d dist -s",
     "dev": "npm run clean; babel src -d dist -s -w",
     "prepare": "npm run build"
   },
