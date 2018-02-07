@@ -6,14 +6,13 @@ import Head, { defaultHead } from 'next/dist/lib/head'
 import App from 'next/dist/lib/app'
 import { flushChunks } from 'next/dist/lib/dynamic'
 
-async function render (req, res, pathname, query, {
-  err,
-  page,
-  buildInfo,
-  settings,
-  assetPrefix = '/_assets',
-} = {}) {
-
+async function render(
+  req,
+  res,
+  pathname,
+  query,
+  { err, page, buildInfo, settings, assetPrefix = '/_assets' } = {}
+) {
   let Component = buildInfo.pages[page]
   let Document = buildInfo.pages['/_document.js']
 
@@ -52,11 +51,16 @@ async function render (req, res, pathname, query, {
     return { html, head, errorHtml, chunks }
   }
 
-  const docProps = await loadGetInitialProps(Document, { ...ctx, renderPage, settings })
+  const docProps = await loadGetInitialProps(Document, {
+    ...ctx,
+    renderPage,
+    settings
+  })
 
   if (res.finished) return
 
-  if (!Document.prototype || !Document.prototype.isReactComponent) throw new Error('_document.js is not exporting a React element')
+  if (!Document.prototype || !Document.prototype.isReactComponent)
+    throw new Error('_document.js is not exporting a React element')
   const doc = createElement(Document, {
     __NEXT_DATA__: {
       props,
@@ -66,7 +70,7 @@ async function render (req, res, pathname, query, {
       buildStats: buildInfo.buildStats,
       assetPrefix,
       nextExport: false,
-      err: (err) ? { message: '500 - Internal Server Error.' } : null
+      err: err ? { message: '500 - Internal Server Error.' } : null
     },
     dev: false,
     dir: '.',
@@ -77,8 +81,7 @@ async function render (req, res, pathname, query, {
   return '<!DOCTYPE html>' + renderToStaticMarkup(doc)
 }
 
-function loadChunks ({ availableChunks }) {
-
+function loadChunks({ availableChunks }) {
   const flushedChunks = flushChunks()
   const validChunks = []
 
