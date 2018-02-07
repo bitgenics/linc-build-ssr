@@ -206,6 +206,7 @@ const createConfigFile = strategy =>
     return fs.writeFile(configFile, contents, err => {
       if (err) return reject(err)
 
+      stdout.write('Created new config file src/linc.config.js\n')
       return resolve()
     })
   })
