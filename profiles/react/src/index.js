@@ -196,7 +196,8 @@ const createConfigFileContents = all => {
 
 const createConfigFile = strategy =>
   new Promise((resolve, reject) => {
-    const configFile = path.join(process.cwd(), 'src/linc.config.js')
+    const CONFIG_FILENAME = 'src/linc.config.js'
+    const configFile = path.join(process.cwd(), CONFIG_FILENAME)
 
     // Don't do anything if config file exists
     if (fs.existsSync(configFile)) return resolve()
@@ -206,7 +207,7 @@ const createConfigFile = strategy =>
     return fs.writeFile(configFile, contents, err => {
       if (err) return reject(err)
 
-      stdout.write('**\n** Created new config file src/linc.config.js\n**\n')
+      stdout.write(`**\n** Created new config file ${CONFIG_FILENAME}\n**\n`)
       return resolve()
     })
   })
