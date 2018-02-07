@@ -160,14 +160,14 @@ const createConfigFileContents = all => {
   let values = []
   values = values.concat('const config = {')
   values = values.concat(
-    "    polyfills: 'default,fetch,Symbol,Symbol.iterator,Array.prototype.find',"
+    "\tpolyfills: 'default,fetch,Symbol,Symbol.iterator,Array.prototype.find',"
   )
-  values = values.concat('    requestExtendedUserInfo: true,')
+  values = values.concat('\trequestExtendedUserInfo: true,')
 
   all.values.map(x => {
     // Options
     Object.keys(x).map(y => {
-      values = values.concat(`    ${y}: {`)
+      values = values.concat(`\t${y}: {`)
 
       // Suboptions
       const subOptionKeys = Object.keys(x[y])
@@ -175,13 +175,13 @@ const createConfigFileContents = all => {
         const opt = x[y][z]
         let s
         if (opt.example) {
-          s = `        ${z}: ${opt.example}`
+          s = `\t\t${z}: ${opt.example}`
         } else if (opt.default) {
-          s = `        ${z}: ${opt.default}`
+          s = `\t\t${z}: ${opt.default}`
         }
         if (s) values = values.concat(notLast(subOptionKeys, z) ? s + ',' : s)
       })
-      let t = '    }'
+      let t = '\t}'
       if (notLast(all.values, x)) {
         t = t + ','
       }
@@ -189,41 +189,49 @@ const createConfigFileContents = all => {
     })
   })
 
-  values = values.concat('}')
+  values = values.concat('};\n')
+  values = values.concat('export default config')
   return [imports, '', values.join('\n'), ''].join('\n')
 }
 
-const createConfigFile = strategy =>
+const createConfigFile = (strategy, opts) =>
   new Promise((resolve, reject) => {
+    const configFile = path.join(process.cwd(), 'src/linc.config.js')
+
+    // Don't do anything if config file exists AND we're NOT initialising
+    if (fs.existsSync(configFile) && !opts.init) return resolve()
+
     const all = getConfigFragments(strategy)
     const contents = createConfigFileContents(all)
-    const configFile = path.join(process.cwd(), 'src/linc.config.js')
-    fs.writeFile(configFile, contents, err => {
+    return fs.writeFile(configFile, contents, err => {
       if (err) return reject(err)
 
       return resolve()
     })
   })
 
-const postBuild = async strategy => {
+const postBuild = async (strategy, opts) => {
   const linc = packageJson.linc || {}
-  if (!linc.sourceDir) {
+  if (!linc.sourceDir || opts.init) {
     linc.sourceDir = await getSourceDir()
     await writePkg(packageJson)
   }
-  await createConfigFile(strategy)
+  await createConfigFile(strategy, opts)
 }
 
 const build = async (opts, callback) => {
+  let init = false
   if (!callback) {
     callback = opts
   } else {
     stdin = opts.stdin || stdin
     stdout = opts.stdout || stdout
+    init = !!opts.init
   }
 
   const strategy = createStrategy(getDependencies())
-  await postBuild(strategy)
+  console.log('WARNING: move postBuild to, well, post build!')
+  await postBuild(strategy, { init })
   await generateClient(path.resolve(DIST_DIR, 'client.js'), strategy)
   const serverStrategy = generateServerStrategy(
     path.resolve(DIST_DIR, 'server-strategy.js'),
@@ -246,7 +254,7 @@ const build = async (opts, callback) => {
   console.log('Created server package')
 
   console.log('Running post build operations')
-  await postBuild(strategy)
+  await postBuild(strategy, { init })
 
   console.log(
     'We have created an overview of your bundles in dist/bundle-report.html'
