@@ -206,7 +206,7 @@ const createConfigFile = strategy =>
     return fs.writeFile(configFile, contents, err => {
       if (err) return reject(err)
 
-      stdout.write('Created new config file src/linc.config.js\n')
+      stdout.write('**\n** Created new config file src/linc.config.js\n**\n')
       return resolve()
     })
   })
@@ -217,7 +217,6 @@ const postBuild = async strategy => {
     linc.sourceDir = await getSourceDir()
     await writePkg(packageJson)
   }
-  await createConfigFile(strategy)
 }
 
 const build = async (opts, callback) => {
@@ -229,8 +228,7 @@ const build = async (opts, callback) => {
   }
 
   const strategy = createStrategy(getDependencies())
-  console.log('!!!\n!!! WARNING: move postBuild to, well, post build!\n!!!')
-  await postBuild(strategy)
+  await createConfigFile(strategy)
   await generateClient(path.resolve(DIST_DIR, 'client.js'), strategy)
   const serverStrategy = generateServerStrategy(
     path.resolve(DIST_DIR, 'server-strategy.js'),
