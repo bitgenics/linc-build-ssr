@@ -18,6 +18,7 @@ async function render (req, res, pathname, query, {
   buildInfo,
   settings,
   assetPrefix = '/_assets',
+  nonce
 } = {}) {
 
   let Component = buildInfo.pages[page]
@@ -81,6 +82,7 @@ async function render (req, res, pathname, query, {
     dev: false,
     dir: '.',
     staticMarkup: false,
+    nonce,
     ...docProps
   })
 
