@@ -194,12 +194,12 @@ const createConfigFileContents = all => {
   return [imports, '', values.join('\n'), ''].join('\n')
 }
 
-const createConfigFile = (strategy, opts) =>
+const createConfigFile = strategy =>
   new Promise((resolve, reject) => {
     const configFile = path.join(process.cwd(), 'src/linc.config.js')
 
-    // Don't do anything if config file exists AND we're NOT initialising
-    if (fs.existsSync(configFile) && !opts.init) return resolve()
+    // Don't do anything if config file exists
+    if (fs.existsSync(configFile)) return resolve()
 
     const all = getConfigFragments(strategy)
     const contents = createConfigFileContents(all)
@@ -210,28 +210,26 @@ const createConfigFile = (strategy, opts) =>
     })
   })
 
-const postBuild = async (strategy, opts) => {
+const postBuild = async strategy => {
   const linc = packageJson.linc || {}
-  if (!linc.sourceDir || opts.init) {
+  if (!linc.sourceDir) {
     linc.sourceDir = await getSourceDir()
     await writePkg(packageJson)
   }
-  await createConfigFile(strategy, opts)
+  await createConfigFile(strategy)
 }
 
 const build = async (opts, callback) => {
-  let init = false
   if (!callback) {
     callback = opts
   } else {
     stdin = opts.stdin || stdin
     stdout = opts.stdout || stdout
-    init = !!opts.init
   }
 
   const strategy = createStrategy(getDependencies())
-  console.log('WARNING: move postBuild to, well, post build!')
-  await postBuild(strategy, { init })
+  console.log('!!!\n!!! WARNING: move postBuild to, well, post build!\n!!!')
+  await postBuild(strategy)
   await generateClient(path.resolve(DIST_DIR, 'client.js'), strategy)
   const serverStrategy = generateServerStrategy(
     path.resolve(DIST_DIR, 'server-strategy.js'),
@@ -254,7 +252,7 @@ const build = async (opts, callback) => {
   console.log('Created server package')
 
   console.log('Running post build operations')
-  await postBuild(strategy, { init })
+  await postBuild(strategy)
 
   console.log(
     'We have created an overview of your bundles in dist/bundle-report.html'
