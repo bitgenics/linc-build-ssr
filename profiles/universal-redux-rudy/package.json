@@ -1,6 +1,6 @@
 {
   "name": "linc-profile-universal-redux-rudy",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Linc Profile for react-universal-component & redux-first-router (rudy)",
   "main": "index.js",
   "author": "Erwin van der Koogh (hello@bitgenics.io)",
