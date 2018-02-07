@@ -1,6 +1,8 @@
+const _ = require('underscore')
 const path = require('path')
 const webpack = require('webpack')
-const fse = require('fs-extra')
+const fs = require('fs-extra')
+const writePkg = require('write-pkg')
 
 const server_config = require('../webpack/webpack.config.server.js')
 const client_config = require('../webpack/webpack.config.client.js')
@@ -14,6 +16,9 @@ const DIST_DIR = path.resolve(PROJECT_DIR, 'dist')
 const MODULES_DIR = path.resolve(PROJECT_DIR, 'node_modules')
 const LIB_DIR = path.resolve(DIST_DIR, 'lib')
 const packageJson = require(path.resolve(PROJECT_DIR, 'package.json'))
+
+let stdin = process.stdin
+let stdout = process.stdout
 
 const mapValues = (obj, iterator) => {
   const keys = Object.keys(obj)
@@ -56,7 +61,7 @@ const copyStatic = async () => {
     const dirname = path.basename(src)
     const dest = path.resolve(DIST_DIR, 'static', dirname)
     console.log(`Copying ${src} to ${dest}`)
-    return fse.copy(src, dest, {
+    return fs.copy(src, dest, {
       overwrite: true,
       dereference: true,
       preserveTimestamps: true
@@ -91,6 +96,23 @@ const mergeOptions = (acc, curr) => {
   return acc
 }
 
+const getConfigFragments = strategy => {
+  const all = strategy.libs
+    .map(lib => {
+      try {
+        return require(`./libs/config_client/${lib}`).configFragment
+      } catch (e) {}
+    })
+    .filter(e => !!e)
+
+  const empty = { imports: [], values: [] }
+  return all.reduce((acc, curr) => {
+    if (curr.imports) acc.imports = acc.imports.concat(curr.imports)
+    if (curr.values) acc.values = acc.values.concat(curr.values)
+    return acc
+  }, empty)
+}
+
 const getWebpackOptions = (strategy, env) => {
   const all = strategy.libs
     .map(lib => {
@@ -98,14 +120,116 @@ const getWebpackOptions = (strategy, env) => {
         return require(`./libs/config_client/${lib}`).webpackConfig
       } catch (e) {}
     })
-    .filter(e => e)
+    .filter(e => !!e)
+
   const empty = { alias: {}, babel: { presets: [], plugins: [] }, plugins: [] }
   const options = all.map(e => e(DIST_DIR)[env]).reduce(mergeOptions, empty)
   return options
 }
 
-const build = async callback => {
+const readOnce = () => new Promise(resolve => stdin.once('data', resolve))
+
+const ask = async (question, suggestion) => {
+  stdout.write(`${question}: `)
+
+  let answer = await readOnce()
+  if (answer) {
+    answer = answer.toString().trim()
+    if (answer.length > 0) {
+      return answer
+    }
+  }
+  stdout.write(`${suggestion}\n`)
+  return ask(question, suggestion)
+}
+
+const getSourceDir = async () => {
+  stdin.resume()
+  const srcDir = await ask(
+    'Directory containing your source code',
+    'Please provide a valid directory.'
+  )
+  stdin.pause()
+  return srcDir
+}
+
+const notLast = (ar, x) => ar.indexOf(x) < ar.length - 1
+
+const createConfigFileContents = all => {
+  const imports = all.imports.join('\n')
+  let values = []
+  values = values.concat('const config = {')
+  values = values.concat(
+    "\tpolyfills: 'default,fetch,Symbol,Symbol.iterator,Array.prototype.find',"
+  )
+  values = values.concat('\trequestExtendedUserInfo: true,')
+
+  all.values.map(x => {
+    // Options
+    Object.keys(x).map(y => {
+      values = values.concat(`\t${y}: {`)
+
+      // Suboptions
+      const subOptionKeys = Object.keys(x[y])
+      subOptionKeys.map(z => {
+        const opt = x[y][z]
+        let s
+        if (opt.example) {
+          s = `\t\t${z}: ${opt.example}`
+        } else if (opt.default) {
+          s = `\t\t${z}: ${opt.default}`
+        }
+        if (s) values = values.concat(notLast(subOptionKeys, z) ? s + ',' : s)
+      })
+      let t = '\t}'
+      if (notLast(all.values, x)) {
+        t = t + ','
+      }
+      values = values.concat(t)
+    })
+  })
+
+  values = values.concat('};\n')
+  values = values.concat('export default config')
+  return [imports, '', values.join('\n'), ''].join('\n')
+}
+
+const createConfigFile = strategy =>
+  new Promise((resolve, reject) => {
+    const CONFIG_FILENAME = 'src/linc.config.js'
+    const configFile = path.join(process.cwd(), CONFIG_FILENAME)
+
+    // Don't do anything if config file exists
+    if (fs.existsSync(configFile)) return resolve()
+
+    const all = getConfigFragments(strategy)
+    const contents = createConfigFileContents(all)
+    return fs.writeFile(configFile, contents, err => {
+      if (err) return reject(err)
+
+      stdout.write(`**\n** Created new config file ${CONFIG_FILENAME}\n**\n`)
+      return resolve()
+    })
+  })
+
+const postBuild = async strategy => {
+  const linc = packageJson.linc || {}
+  if (!linc.sourceDir) {
+    linc.sourceDir = await getSourceDir()
+    await writePkg(packageJson)
+  }
+}
+
+const build = async (opts, callback) => {
+  if (!callback) {
+    callback = opts
+  } else {
+    stdin = opts.stdin || stdin
+    stdout = opts.stdout || stdout
+  }
+
   const strategy = createStrategy(getDependencies())
+  await createConfigFile(strategy)
   await generateClient(path.resolve(DIST_DIR, 'client.js'), strategy)
   const serverStrategy = generateServerStrategy(
     path.resolve(DIST_DIR, 'server-strategy.js'),
@@ -127,6 +251,9 @@ const build = async callback => {
   await staticCopy
   console.log('Created server package')
 
+  console.log('Running post build operations')
+  await postBuild(strategy)
+
   console.log(
     'We have created an overview of your bundles in dist/bundle-report.html'
   )
@@ -134,21 +261,4 @@ const build = async callback => {
   callback()
 }
 
-const getConfigSampleFiles = () => {
-  return ['linc.config.server.js', 'linc.config.client.js']
-}
-
-const getInitQuestions = () => {
-  return {
-    sourceDir: {
-      text: 'Please provide the directory containing your source code',
-      dflt: 'src'
-    }
-  }
-}
-
-module.exports = {
-  build,
-  getConfigSampleFiles,
-  getInitQuestions
-}
+module.exports = build

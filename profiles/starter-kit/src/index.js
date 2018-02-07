@@ -16,7 +16,10 @@ const build_server = async () => {
   })
 }
 
-module.exports = async callback => {
+module.exports = async (opts, callback) => {
+  if (!callback) {
+    callback = opts
+  }
   try {
     await build_client()
     await build_server()

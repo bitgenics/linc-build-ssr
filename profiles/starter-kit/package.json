@@ -1,6 +1,6 @@
 {
   "name": "linc-profile-starter-kit",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "A starter kit to write your own profiles from scratch",
   "main": "dist/index.js",
   "author": "Erwin van der Koogh <hello@bitgenics.io>",

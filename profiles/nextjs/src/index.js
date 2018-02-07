@@ -120,7 +120,11 @@ const build_client = async () => {
   return require(path.join(nextDir, 'build-stats.json'))
 }
 
-module.exports = async callback => {
+const build = async (opts, callback) => {
+  if (!callback) {
+    callback = opts
+  }
+
   try {
     await fse.remove('./.next')
     await fse.remove('./dist')
@@ -135,3 +139,5 @@ module.exports = async callback => {
     callback(e)
   }
 }
+
+module.exports = build
