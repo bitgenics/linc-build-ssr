@@ -40,7 +40,7 @@ const copyNextFiles = async buildStats => {
   const buildId = await fse.readFile(path.join(nextDir, 'BUILD_ID'), 'utf-8')
   const buildIdDir = path.join(nextFilesDir, buildId)
   copy(path.join(nextDistDir, 'chunk'), path.join(buildIdDir, 'webpack'))
-  for (file in buildStats) {
+  for (const file in buildStats) {
     copy(
       path.join(nextDir, file),
       path.join(nextFilesDir, buildStats[file].hash, file)

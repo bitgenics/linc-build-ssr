@@ -6,11 +6,6 @@ process.env.NODE_ENV = 'production'
 const LINC_DIR = path.resolve(__dirname, '..')
 const PROJECT_DIR = process.cwd()
 
-const packageJson = require(path.resolve(PROJECT_DIR, 'package.json'))
-const lincConfig = packageJson.linc || {}
-const src = lincConfig.sourceDir || 'src'
-const SRC_DIR = path.resolve(PROJECT_DIR, src)
-
 const babeloptions = {
   babelrc: false,
   presets: [
@@ -55,11 +50,11 @@ const createConfig = ({ targetDir = 'dist' } = {}) => {
     target: 'node',
     resolve: {
       alias: {
-        'next-build-info': path.join(TARGET_DIR, 'build_info.js')
+        'next-build-info': path.join(TARGET_DIR, 'build_info.js'),
+        'linc-server-config': path.join(PROJECT_DIR, 'linc.server.config.js')
       },
       extensions: ['.js', '.json', '.jsx'],
       modules: [
-        SRC_DIR,
         'node_modules',
         path.resolve(PROJECT_DIR, 'node_modules')
       ]
