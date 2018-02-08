@@ -173,14 +173,18 @@ const getOptionValue = async question => {
 
 const notLast = (ar, x) => ar.indexOf(x) < ar.length - 1
 
+const configLines = {
+  top: [
+    'const config = {',
+    "\t// polyfills: 'default,fetch,Symbol,Symbol.iterator,Array.prototype.find',",
+    '\t// requestExtendedUserInfo: true,'
+  ],
+  bottom: ['};', '', 'export default config']
+}
+
 const createConfigFileContents = async all => {
   const imports = all.imports.join('\n')
-  let values = []
-  values = values.concat('const config = {')
-  values = values.concat(
-    "\t// polyfills: 'default,fetch,Symbol,Symbol.iterator,Array.prototype.find',"
-  )
-  values = values.concat('\t// requestExtendedUserInfo: true,')
+  let values = configLines.top
 
   const configOptions = all.values
   for (let x of configOptions) {
@@ -215,8 +219,7 @@ const createConfigFileContents = async all => {
     }
   }
 
-  values = values.concat('};\n')
-  values = values.concat('export default config')
+  values = values.concat(configLines.bottom)
   return [imports, '', values.join('\n'), ''].join('\n')
 }
 
