@@ -15,19 +15,18 @@ const generateCSP = (config, report) => {
   const configElem = report ? 'cspReport' : 'csp'
   const directives = config.headers && config.headers[configElem]
   console.log('directives', directives)
-  if(!config.headers || !directives) {
+  if (!config.headers || !directives) {
     return null
   }
 
-  return Object.keys(directives).reduce((result, key) => {
-    result.concat(`${dashify(key)} ${directives[key]}`)
-  }, []).join('; ')
+  return Object.keys(directives)
+    .reduce((result, key) => {
+      result.concat(`${dashify(key)} ${directives[key]}`)
+    }, [])
+    .join('; ')
 }
 
-const dashify = (str) =>
-  str
-    .replace(/([a-z])([A-Z])/g, '$1-$2')
-    .toLowerCase()
+const dashify = str => str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
 
 const route = req => {
   const parsedUrl = parseUrl(req.url, true)

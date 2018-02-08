@@ -12,15 +12,13 @@ import packageJson from 'next/package.json'
 const oldChunks = semver.lt(packageJson.version, '4.3.0')
 const loadChunks = oldChunks ? oldLoadChunks : newLoadChunks
 
-async function render (req, res, pathname, query, {
-  err,
-  page,
-  buildInfo,
-  settings,
-  assetPrefix = '/_assets',
-  nonce
-} = {}) {
-
+async function render(
+  req,
+  res,
+  pathname,
+  query,
+  { err, page, buildInfo, settings, assetPrefix = '/_assets', nonce } = {}
+) {
   let Component = buildInfo.pages[page]
   let Document = buildInfo.pages['/_document.js']
 
@@ -55,7 +53,7 @@ async function render (req, res, pathname, query, {
       head = Head.rewind() || defaultHead()
     }
 
-    const chunks = loadChunks ({ availableChunks: buildInfo.chunks })
+    const chunks = loadChunks({ availableChunks: buildInfo.chunks })
 
     return { html, head, errorHtml, chunks }
   }
@@ -79,7 +77,7 @@ async function render (req, res, pathname, query, {
       buildStats: buildInfo.buildStats,
       assetPrefix,
       nextExport: false,
-      err: (err) ? { message: '500 - Internal Server Error.' } : null,
+      err: err ? { message: '500 - Internal Server Error.' } : null
     },
     __LINC_DATA__: {
       settings
@@ -94,8 +92,7 @@ async function render (req, res, pathname, query, {
   return '<!DOCTYPE html>' + renderToStaticMarkup(doc)
 }
 
-function oldLoadChunks ({ availableChunks }) {
-
+function oldLoadChunks({ availableChunks }) {
   const flushedChunks = flushChunks()
   const validChunks = []
 
@@ -108,7 +105,7 @@ function oldLoadChunks ({ availableChunks }) {
   return validChunks
 }
 
-function newLoadChunks ({ availableChunks }) {
+function newLoadChunks({ availableChunks }) {
   const flushedChunks = flushChunks()
   const response = {
     names: [],

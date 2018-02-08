@@ -1,6 +1,6 @@
 {
   "name": "linc-profile-nextjs",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "A Linc Profile for Next.js",
   "main": "dist/index.js",
   "repository": "https://github.com/bitgenics/linc-build-ssr",
