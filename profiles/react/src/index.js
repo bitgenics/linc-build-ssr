@@ -158,13 +158,15 @@ const getSourceDir = async () => {
 
 /**
  * Get option value
- * @param question
+ * @param option
  * @returns {Promise<*>}
  */
-const getOptionValue = async question => {
+const getOptionValue = async option => {
   stdin.resume()
   const optionValue = await ask(
-    question,
+    `${option.comment}, e.g., '${
+      option.example ? option.example : option.default
+    }'`,
     'This is a mandatory field. Please enter a value.'
   )
   stdin.pause()
@@ -196,20 +198,19 @@ const createConfigFileContents = async all => {
       for (let z of subOptionKeys) {
         const opt = x[y][z]
 
+        let s
         let optionValue
         if (opt.required) {
-          optionValue = await getOptionValue(opt.comment)
+          optionValue = await getOptionValue(opt)
+          s = `\t\t${z}: ${optionValue}`
+        } else {
+          if (opt.example) {
+            s = `\t\t// ${z}: ${opt.example}`
+          } else if (opt.default) {
+            s = `\t\t// ${z}: ${opt.default}`
+          }
         }
 
-        let s
-        const c = opt.commented ? '// ' : ''
-        if (optionValue) {
-          s = `\t\t${c}${z}: ${optionValue}`
-        } else if (opt.example) {
-          s = `\t\t${c}${z}: ${opt.example}`
-        } else if (opt.default) {
-          s = `\t\t${c}${z}: ${opt.default}`
-        }
         if (s) {
           values = values.concat(notLast(subOptionKeys, z) ? s + ',' : s)
         }
@@ -238,11 +239,11 @@ const createConfigFile = async strategy => {
   const configFile = path.join(process.cwd(), CONFIG_FILENAME)
 
   // Don't do anything if config file exists
-  if (fs.existsSync(configFile)) return resolve()
-
-  const all = getConfigFragments(strategy)
-  const contents = await createConfigFileContents(all)
-  writeFile(configFile, contents)
+  if (!fs.existsSync(configFile)) {
+    const all = getConfigFragments(strategy)
+    const contents = await createConfigFileContents(all)
+    writeFile(configFile, contents)
+  }
 }
 
 const postBuild = async () => {
