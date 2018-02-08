@@ -29,6 +29,7 @@ const configFragment = {
       parseServerState: {
         example: 'serverState => serverState',
         required: false,
+        commented: true,
         comment:
           'A method to use to parse the JSON state the server sent. Used for things like Immutable.js'
       }
