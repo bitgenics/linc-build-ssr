@@ -3,6 +3,7 @@ const configFragment = {
   values: {
     router: {
       routes: {
+        default: 'routes',
         example: 'routes',
         required: true,
         comment: 'Your routes definition'
