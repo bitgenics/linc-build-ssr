@@ -127,7 +127,10 @@ const getWebpackOptions = (strategy, env) => {
   return options
 }
 
-const readOnce = () => new Promise(resolve => stdin.once('data', resolve))
+const readOnce = () =>
+  new Promise(resolve => {
+    stdin.once('data', resolve)
+  })
 
 const ask = async (question, suggestion) => {
   stdout.write(`${question}: `)
@@ -153,66 +156,93 @@ const getSourceDir = async () => {
   return srcDir
 }
 
+/**
+ * Get option value
+ * @param question
+ * @returns {Promise<*>}
+ */
+const getOptionValue = async question => {
+  stdin.resume()
+  const optionValue = await ask(
+    question,
+    'This is a mandatory field. Please enter a value.'
+  )
+  stdin.pause()
+  return optionValue
+}
+
 const notLast = (ar, x) => ar.indexOf(x) < ar.length - 1
 
-const createConfigFileContents = all => {
+const createConfigFileContents = async all => {
   const imports = all.imports.join('\n')
   let values = []
   values = values.concat('const config = {')
   values = values.concat(
-    "\tpolyfills: 'default,fetch,Symbol,Symbol.iterator,Array.prototype.find',"
+    "\t// polyfills: 'default,fetch,Symbol,Symbol.iterator,Array.prototype.find',"
   )
-  values = values.concat('\trequestExtendedUserInfo: true,')
+  values = values.concat('\t// requestExtendedUserInfo: true,')
 
-  all.values.map(x => {
-    // Options
-    Object.keys(x).map(y => {
+  const configOptions = all.values
+  for (let x of configOptions) {
+    for (let y of Object.keys(x)) {
       values = values.concat(`\t${y}: {`)
 
       // Suboptions
       const subOptionKeys = Object.keys(x[y])
-      subOptionKeys.map(z => {
+      for (let z of subOptionKeys) {
         const opt = x[y][z]
-        let s
-        if (opt.example) {
-          s = `\t\t${z}: ${opt.example}`
-        } else if (opt.default) {
-          s = `\t\t${z}: ${opt.default}`
+
+        let optionValue
+        if (opt.required) {
+          optionValue = await getOptionValue(opt.comment)
         }
-        if (s) values = values.concat(notLast(subOptionKeys, z) ? s + ',' : s)
-      })
-      let t = '\t}'
-      if (notLast(all.values, x)) {
-        t = t + ','
+
+        let s
+        const c = opt.commented ? '// ' : ''
+        if (optionValue) {
+          s = `\t\t${c}${z}: ${optionValue}`
+        } else if (opt.example) {
+          s = `\t\t${c}${z}: ${opt.example}`
+        } else if (opt.default) {
+          s = `\t\t${c}${z}: ${opt.default}`
+        }
+        if (s) {
+          values = values.concat(notLast(subOptionKeys, z) ? s + ',' : s)
+        }
       }
-      values = values.concat(t)
-    })
-  })
+      const t = '\t}'
+      values = values.concat(notLast(configOptions, x) ? t + ',' : t)
+    }
+  }
 
   values = values.concat('};\n')
   values = values.concat('export default config')
   return [imports, '', values.join('\n'), ''].join('\n')
 }
 
-const createConfigFile = strategy =>
+const writeFile = (file, contents) =>
   new Promise((resolve, reject) => {
-    const CONFIG_FILENAME = 'src/linc.config.js'
-    const configFile = path.join(process.cwd(), CONFIG_FILENAME)
-
-    // Don't do anything if config file exists
-    if (fs.existsSync(configFile)) return resolve()
-
-    const all = getConfigFragments(strategy)
-    const contents = createConfigFileContents(all)
-    return fs.writeFile(configFile, contents, err => {
+    return fs.writeFile(file, contents, err => {
       if (err) return reject(err)
 
-      stdout.write(`**\n** Created new config file ${CONFIG_FILENAME}\n**\n`)
+      stdout.write(`**\n** Created new config file ${file}\n**\n`)
       return resolve()
     })
   })
 
-const postBuild = async strategy => {
+const createConfigFile = async strategy => {
+  const CONFIG_FILENAME = 'src/linc.config.js'
+  const configFile = path.join(process.cwd(), CONFIG_FILENAME)
+
+  // Don't do anything if config file exists
+  if (fs.existsSync(configFile)) return resolve()
+
+  const all = getConfigFragments(strategy)
+  const contents = await createConfigFileContents(all)
+  writeFile(configFile, contents)
+}
+
+const postBuild = async () => {
   const linc = packageJson.linc || {}
   if (!linc.sourceDir) {
     linc.sourceDir = await getSourceDir()
@@ -252,7 +282,7 @@ const build = async (opts, callback) => {
   console.log('Created server package')
 
   console.log('Running post build operations')
-  await postBuild(strategy)
+  await postBuild()
 
   console.log(
     'We have created an overview of your bundles in dist/bundle-report.html'
