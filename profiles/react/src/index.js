@@ -197,11 +197,13 @@ const option = async (opt, memo, lvl) => {
       memo.values = memo.values.concat(`${indent}},`)
     }
   } else {
+    let isRequired = false
     // Yep, innermost level
     for (let k of keys) {
       let optn = opt[k]
       let s
       if (optn.required) {
+        isRequired = true
         s = `${indent}${k}: ${await getOptionValue(optn)}`
       } else {
         if (optn.example) {
@@ -214,21 +216,24 @@ const option = async (opt, memo, lvl) => {
         memo.values = memo.values.concat(`${s},`)
       }
     }
+    memo.required.push(isRequired)
   }
 }
 
 const createConfigFileContents = async all => {
-  const imports = all.imports.join('\n')
   const memo = {
-    values: configLines.top
+    values: configLines.top,
+    required: []
   }
-
   for (let x of all.values) {
     await option(x, memo, 0)
   }
-
   memo.values = memo.values.concat(configLines.bottom)
-  return [imports, '', memo.values.join('\n'), ''].join('\n')
+  const imports = _.map(
+    all.imports,
+    (o, i) => (memo.required[i] ? o : `// ${o}`)
+  )
+  return [imports.join('\n'), '', memo.values.join('\n'), ''].join('\n')
 }
 
 const writeFile = (file, contents) =>
