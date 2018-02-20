@@ -173,55 +173,62 @@ const getOptionValue = async option => {
   return optionValue
 }
 
-const notLast = (ar, x) => ar.indexOf(x) < ar.length - 1
-
 const configLines = {
   top: [
     'const config = {',
-    "\t// polyfills: 'default,fetch,Symbol,Symbol.iterator,Array.prototype.find',",
-    '\t// requestExtendedUserInfo: true,'
+    "    // polyfills: 'default,fetch,Symbol,Symbol.iterator,Array.prototype.find',",
+    '    // requestExtendedUserInfo: true,'
   ],
   bottom: ['};', '', 'export default config']
 }
 
-const createConfigFileContents = async all => {
-  const imports = all.imports.join('\n')
-  let values = configLines.top
+const option = async (opt, memo, lvl) => {
+  const indent = '    '.repeat(lvl + 1)
+  const keys = Object.keys(opt)
 
-  const configOptions = all.values
-  for (let x of configOptions) {
-    for (let y of Object.keys(x)) {
-      values = values.concat(`\t${y}: {`)
-
-      // Suboptions
-      const subOptionKeys = Object.keys(x[y])
-      for (let z of subOptionKeys) {
-        const opt = x[y][z]
-
-        let s
-        let optionValue
-        if (opt.required) {
-          optionValue = await getOptionValue(opt)
-          s = `\t\t${z}: ${optionValue}`
-        } else {
-          if (opt.example) {
-            s = `\t\t// ${z}: ${opt.example}`
-          } else if (opt.default) {
-            s = `\t\t// ${z}: ${opt.default}`
-          }
-        }
-
-        if (s) {
-          values = values.concat(notLast(subOptionKeys, z) ? s + ',' : s)
+  // Lookahead to see if we've reached the innermost level
+  const o = opt[keys[0]]
+  const ks = Object.keys(o)
+  if (typeof o[ks[0]] === 'object') {
+    // We can go a level deeper
+    for (let k of keys) {
+      memo.values = memo.values.concat(`${indent}${k}: {`)
+      await option(opt[k], memo, lvl + 1)
+      memo.values = memo.values.concat(`${indent}},`)
+    }
+  } else {
+    // Yep, innermost level
+    for (let k of keys) {
+      let optn = opt[k]
+      let s
+      if (optn.required) {
+        s = `${indent}${k}: ${await getOptionValue(optn)}`
+      } else {
+        if (optn.example) {
+          s = `${indent}// ${k}: ${optn.example}`
+        } else if (optn.default) {
+          s = `${indent}// ${k}: ${optn.default}`
         }
       }
-      const t = '\t}'
-      values = values.concat(notLast(configOptions, x) ? t + ',' : t)
+      if (s) {
+        memo.values = memo.values.concat(`${s},`)
+      }
     }
   }
+}
 
-  values = values.concat(configLines.bottom)
-  return [imports, '', values.join('\n'), ''].join('\n')
+const createConfigFileContents = async all => {
+  const imports = all.imports.join('\n')
+  const memo = {
+    values: configLines.top
+  }
+
+  for (let x of all.values) {
+    await option(x, memo, 0)
+  }
+
+  memo.values = memo.values.concat(configLines.bottom)
+  return [imports, '', memo.values.join('\n'), ''].join('\n')
 }
 
 const writeFile = (file, contents) =>
