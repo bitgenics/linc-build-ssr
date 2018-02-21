@@ -80,7 +80,7 @@ const getLibs = strategy => {
   const list = Object.keys(strategy).reduce((list, elem) => {
     return list.concat(strategy[elem])
   }, [])
-  return list.filter((item, pos, self) => self.indexOf(item) == pos)
+  return list.filter((item, pos, self) => self.indexOf(item) === pos)
 }
 
 const createStrategy = deps => {
