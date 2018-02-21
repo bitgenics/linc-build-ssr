@@ -24,7 +24,7 @@ const pickRouter = deps => {
 
 const pickStatePromise = deps => {
   if (deps['redux']) {
-    return 'promiseCounter'
+    return 'config-redux'
   } else {
     return 'config-state'
   }
