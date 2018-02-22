@@ -26,7 +26,7 @@ async function render(
   Document = Document.default || Document
 
   const asPath = req.url
-  const ctx = { err, req, res, pathname, query, asPath }
+  const ctx = { err, req, res, pathname, query, asPath, nonce }
   const props = await loadGetInitialProps(Component, ctx)
 
   // the response might be finshed on the getinitialprops call

@@ -4,29 +4,39 @@ import { parse as parseQs } from 'querystring'
 import buildInfo from 'next-build-info'
 
 const render = require('./render').default
-let serverConfig = {}
+let config = {}
 try {
-  serverConfig = require('linc-server-config')
+  config = require('linc-server-config')
   console.log('Using custom server configuration')
-  console.log(serverConfig)
 } catch (e) {}
 
-const generateCSP = (config, report) => {
-  const configElem = report ? 'cspReport' : 'csp'
-  const directives = config.headers && config.headers[configElem]
-  console.log('directives', directives)
-  if (!config.headers || !directives) {
+const dashify = str => str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
+
+const generateCSP = cfg => {
+  if (!cfg) {
     return null
   }
 
+  const directives = {}
+  for (const directive in cfg) {
+    directives[dashify(directive)] = cfg[directive]
+  }
+ 
+  directives['script-src'] = `${directives['script-src'] ||
+    ''} 'unsafe-inline' 'nonce-__NONCE__'`
+  directives['style-src'] = `${directives['style-src'] || ''} 'unsafe-inline'` // 'nonce-__NONCE__'
+
   return Object.keys(directives)
     .reduce((result, key) => {
-      result.concat(`${dashify(key)} ${directives[key]}`)
+      return result.concat(`${key} ${directives[key]}`)
     }, [])
     .join('; ')
 }
 
-const dashify = str => str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
+const cspConfig = config.headers && config.headers.csp
+const cspHeader = cspConfig ? generateCSP(cspConfig) : null
+const cspReportConfig = config.headers && config.headers.cspReport
+const cspReportHeader = cspReportConfig ? generateCSP(cspReportConfig) : null
 
 const route = req => {
   const parsedUrl = parseUrl(req.url, true)
@@ -62,11 +72,40 @@ const getNonce = () => {
   })
 }
 
-const renderGet = async (req, res, settings) => {
+const sendHeaders = (req, res, nonce, env = 'prod') => {
+  if (cspHeader && env !== 'local') {
+    res.setHeader(
+      'Content-Security-Policy',
+      cspHeader.replace(/__NONCE__/g, nonce)
+    )
+  }
+  if (cspReportHeader) {
+    res.setHeader(
+      'Content-Security-Policy-Report',
+      cspReportHeader.replace(/__NONCE__/g, nonce)
+    )
+  }
+  const configHeaders = config.headers || {}
+  const staticHeaders = configHeaders.static || []
+  for(let header of staticHeaders) {
+    res.setHeader(header.name, header.value)
+  }
+  const dynamicHeaders = configHeaders.dynamic ? configHeaders.dynamic(req) : []
+  for(let header of dynamicHeaders) {
+    res.setHeader(header.name, header.value)
+  }
+  if (!env.startsWith('prod') && !env.startsWith('local')) {
+    res.setHeader('X-Robots-Tag', 'none')
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
+  }
+}
+
+const renderGet = async (req, res, settings, env = 'prod') => {
   try {
+    const nonce = await getNonce()
+    sendHeaders(req, res, nonce, env)
     const { status, path, query, page } = route(req)
     res.statusCode = status
-    const nonce = await getNonce()
     const html = await render(req, res, path, query, {
       page,
       buildInfo,
