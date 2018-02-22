@@ -87,7 +87,8 @@ const userInfo = (window && window.__USER_INFO__) || {};
 
 const main = () => {
 
-  ${clientStrategy.getStatePromise.createStoreFragment('store', 'initialState')}
+  ${clientStrategy.getStatePromise &&
+    clientStrategy.getStatePromise.createStoreFragment('store', 'initialState')}
   const env = {store, userInfo, config};
   if(typeof config.init ==='function') {
       config.init(env);
