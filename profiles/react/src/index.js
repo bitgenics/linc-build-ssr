@@ -133,7 +133,7 @@ const readOnce = () =>
   })
 
 const ask = async (question, suggestion) => {
-  stdout.write(`${question}: `)
+  stdout.write(`${question} `)
 
   let answer = await readOnce()
   if (answer) {
@@ -149,7 +149,7 @@ const ask = async (question, suggestion) => {
 const getSourceDir = async () => {
   stdin.resume()
   const srcDir = await ask(
-    'Directory containing your source code',
+    'Directory containing your source code:',
     'Please provide a valid directory.'
   )
   stdin.pause()
@@ -166,7 +166,7 @@ const getOptionValue = async option => {
   const optionValue = await ask(
     `${option.comment}, e.g., '${
       option.example ? option.example : option.default
-    }'`,
+    }':`,
     'This is a mandatory field. Please enter a value.'
   )
   stdin.pause()
@@ -266,6 +266,30 @@ const postBuild = async () => {
   }
 }
 
+const askUseExternalApi = async () => {
+  let useState = null
+
+  stdin.resume()
+  const useApi = await ask(
+    'Do you want to use external APIs while server-side rendering (Y/N)?',
+    'Please answer Y/N.'
+  )
+  if (useApi.toUpperCase() === 'Y') {
+    const usePromiseCounter = await ask(
+      `You can use redux-promise-counter, or provide your own function.
+Do you want to use redux-promise-counter (Y/N)?`,
+      'Please answer Y or N.'
+    )
+    useState =
+      usePromiseCounter.toUpperCase() === 'Y'
+        ? 'redux-promise-counter'
+        : 'config-state'
+  }
+  stdin.pause()
+
+  return useState
+}
+
 const build = async (opts, callback) => {
   if (!callback) {
     callback = opts
@@ -274,7 +298,8 @@ const build = async (opts, callback) => {
     stdout = opts.stdout || stdout
   }
 
-  const strategy = createStrategy(getDependencies())
+  const useState = await askUseExternalApi()
+  const strategy = createStrategy(getDependencies(), useState)
   await createConfigFile(strategy)
   await generateClient(path.resolve(DIST_DIR, 'client.js'), strategy)
   const serverStrategy = generateServerStrategy(

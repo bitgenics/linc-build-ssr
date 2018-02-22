@@ -83,13 +83,15 @@ const getLibs = strategy => {
   return list.filter((item, pos, self) => self.indexOf(item) === pos)
 }
 
-const createStrategy = deps => {
+const createStrategy = (deps, useState) => {
   try {
     const strategy = {}
     strategy.inits = pickInits(deps)
     strategy.router = pickRouter(deps)
     strategy.render = pickRenderer(deps)
-    strategy.getStatePromise = pickStatePromise(deps)
+    if (useState) {
+      strategy.getStatePromise = pickStatePromise(deps)
+    }
     strategy.preRenders = pickPreRenders(deps)
     strategy.afterRenders = pickAfterRenders(deps)
     strategy.libs = getLibs(strategy)
