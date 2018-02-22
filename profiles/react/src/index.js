@@ -107,7 +107,7 @@ const getConfigFragments = strategy => {
 
   const empty = { imports: [], values: [] }
   return all.reduce((acc, curr) => {
-    if (curr.imports) acc.imports = acc.imports.concat(curr.imports)
+    if (curr.imports) acc.imports.push(curr.imports)
     if (curr.values) acc.values = acc.values.concat(curr.values)
     return acc
   }, empty)
@@ -229,10 +229,18 @@ const createConfigFileContents = async all => {
     await option(x, memo, 0)
   }
   memo.values = memo.values.concat(configLines.bottom)
-  const imports = _.map(
+
+  // This creates a list of imports, where the imports for non-required
+  // options are commented out.
+  const imports = _.reduce(
     all.imports,
-    (o, i) => (memo.required[i] ? o : `// ${o}`)
+    (m, v, i) => {
+      v.forEach(o => m.push(memo.required[i] ? o : `// ${o}`))
+      return m
+    },
+    []
   )
+
   return [imports.join('\n'), '', memo.values.join('\n'), ''].join('\n')
 }
 
