@@ -283,13 +283,13 @@ const askUseExternalApi = async () => {
 
   stdin.resume()
   const useApi = await ask(
-    'Do you want to use external APIs while server-side rendering (Y/N)?',
+    'Do you want to use external APIs while server-side rendering (y/n)?',
     'Please answer Y/N.'
   )
   if (useApi.toUpperCase() === 'Y') {
     const usePromiseCounter = await ask(
       `You can use redux-promise-counter, or provide your own function.
-Do you want to use redux-promise-counter (Y/N)?`,
+Do you want to use redux-promise-counter (y/n)?`,
       'Please answer Y or N.'
     )
     useState =
