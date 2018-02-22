@@ -11,6 +11,8 @@ const generateServerStrategy = require('./generateServerStrategy')
 const generateClient = require('./generateClient')
 const generateIncludes = require('./generateIncludes')
 
+const CONFIG_FILENAME = 'src/linc.config.js'
+
 const PROJECT_DIR = process.cwd()
 const DIST_DIR = path.resolve(PROJECT_DIR, 'dist')
 const MODULES_DIR = path.resolve(PROJECT_DIR, 'node_modules')
@@ -107,7 +109,7 @@ const getConfigFragments = strategy => {
 
   const empty = { imports: [], values: [] }
   return all.reduce((acc, curr) => {
-    if (curr.imports) acc.imports = acc.imports.concat(curr.imports)
+    if (curr.imports) acc.imports.push(curr.imports)
     if (curr.values) acc.values = acc.values.concat(curr.values)
     return acc
   }, empty)
@@ -229,10 +231,18 @@ const createConfigFileContents = async all => {
     await option(x, memo, 0)
   }
   memo.values = memo.values.concat(configLines.bottom)
-  const imports = _.map(
+
+  // This creates a list of imports, where the imports for non-required
+  // options are commented out.
+  const imports = _.reduce(
     all.imports,
-    (o, i) => (memo.required[i] ? o : `// ${o}`)
+    (m, v, i) => {
+      v.forEach(o => m.push(memo.required[i] ? o : `// ${o}`))
+      return m
+    },
+    []
   )
+
   return [imports.join('\n'), '', memo.values.join('\n'), ''].join('\n')
 }
 
@@ -246,15 +256,17 @@ const writeFile = (file, contents) =>
     })
   })
 
+const hasConfigFile = () =>
+  fs.existsSync(path.join(PROJECT_DIR, CONFIG_FILENAME))
+
 const createConfigFile = async strategy => {
-  const CONFIG_FILENAME = 'src/linc.config.js'
-  const configFile = path.join(process.cwd(), CONFIG_FILENAME)
+  const configFileName = path.join(PROJECT_DIR, CONFIG_FILENAME)
 
   // Don't do anything if config file exists
-  if (!fs.existsSync(configFile)) {
+  if (!hasConfigFile()) {
     const all = getConfigFragments(strategy)
-    const contents = await createConfigFileContents(all)
-    writeFile(configFile, contents)
+    const configFileContents = await createConfigFileContents(all)
+    writeFile(configFileName, configFileContents)
   }
 }
 
