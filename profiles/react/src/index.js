@@ -166,7 +166,8 @@ const getSourceDir = async () => {
 const getOptionValue = async option => {
   stdin.resume()
   const optionValue = await ask(
-    `${option.comment}, e.g., '${
+    `
+${option.comment}, e.g., '${
       option.example ? option.example : option.default
     }':`,
     'This is a mandatory field. Please enter a value.'
@@ -178,7 +179,8 @@ const getOptionValue = async option => {
 const getImport = async option => {
   stdin.resume()
   const importValue = await ask(
-    `Please enter the path for '${option}' relative to your source dir:`,
+    `Please tell us where we can find '${option} by entering its path.
+Path for ${option} (relative to your source dir):`,
     `This is a mandatory field. Please enter a value.`
   )
   stdin.pause()
@@ -313,7 +315,8 @@ const askUseExternalApi = async () => {
 
   stdin.resume()
   const useApi = await ask(
-    'Do you want to use external APIs while server-side rendering (y/n)?',
+    `
+Do you want to use external APIs while server-side rendering (y/n)?`,
     'Please answer y or n.'
   )
   if (useApi.toUpperCase() === 'Y') {
