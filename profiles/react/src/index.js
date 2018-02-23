@@ -219,8 +219,11 @@ const getOption = async (opt, memo, lvl) => {
         isRequired = true
 
         // Ask for the required option name
-        const t = await getOptionValue(optn)
+        let t = await getOptionValue(optn)
         s = `${indent}${k}: ${t}`
+
+        // In case it's an object like <App/>
+        t = t.replace(/^[^a-zA-Z0-9]*([a-zA-Z0-9]+)[^a-zA-Z0-9]*/, '$1')
 
         // Ask for the import path of the required option
         if (!importSrc) {
