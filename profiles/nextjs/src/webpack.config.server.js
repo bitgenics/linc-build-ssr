@@ -54,10 +54,7 @@ const createConfig = ({ targetDir = 'dist' } = {}) => {
         'linc-server-config': path.join(PROJECT_DIR, 'linc.server.config.js')
       },
       extensions: ['.js', '.json', '.jsx'],
-      modules: [
-        'node_modules',
-        path.resolve(PROJECT_DIR, 'node_modules')
-      ]
+      modules: ['node_modules', path.resolve(PROJECT_DIR, 'node_modules')]
     },
     resolveLoader: {
       modules: ['node_modules', path.resolve(LINC_DIR, 'node_modules')]

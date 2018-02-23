@@ -21,7 +21,7 @@ export default class LincInit extends Component {
     return <script nonce={this.props.nonce} dangerouslySetInnerHTML={{
       __html:
         `var SETTINGS = ${htmlescape(settings)}
-        var NONCE = ${this.props.nonce}
+        var NONCE = "${this.props.nonce}"
       `
     }} />
   }
