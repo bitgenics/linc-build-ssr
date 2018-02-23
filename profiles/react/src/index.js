@@ -184,7 +184,7 @@ const configLines = {
   bottom: ['};', '', 'export default config']
 }
 
-const option = async (opt, memo, lvl) => {
+const getOption = async (opt, memo, lvl) => {
   const indent = '    '.repeat(lvl + 1)
   const keys = Object.keys(opt)
 
@@ -195,7 +195,7 @@ const option = async (opt, memo, lvl) => {
     // We can go a level deeper
     for (let k of keys) {
       memo.values = memo.values.concat(`${indent}${k}: {`)
-      await option(opt[k], memo, lvl + 1)
+      await getOption(opt[k], memo, lvl + 1)
       memo.values = memo.values.concat(`${indent}},`)
     }
   } else {
@@ -228,7 +228,7 @@ const createConfigFileContents = async all => {
     required: []
   }
   for (let x of all.values) {
-    await option(x, memo, 0)
+    await getOption(x, memo, 0)
   }
   memo.values = memo.values.concat(configLines.bottom)
 
