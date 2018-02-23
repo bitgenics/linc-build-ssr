@@ -175,6 +175,16 @@ const getOptionValue = async option => {
   return optionValue
 }
 
+const getImport = async option => {
+  stdin.resume()
+  const importValue = await ask(
+    `Please enter the path for '${option}' relative to your source dir:`,
+    `This is a mandatory field. Please enter a value.`
+  )
+  stdin.pause()
+  return importValue
+}
+
 const configLines = {
   top: [
     'const config = {',
@@ -199,6 +209,7 @@ const getOption = async (opt, memo, lvl) => {
       memo.values = memo.values.concat(`${indent}},`)
     }
   } else {
+    let importSrc
     let isRequired = false
     // Yep, innermost level
     for (let k of keys) {
@@ -206,7 +217,15 @@ const getOption = async (opt, memo, lvl) => {
       let s
       if (optn.required) {
         isRequired = true
-        s = `${indent}${k}: ${await getOptionValue(optn)}`
+
+        // Ask for the required option name
+        const t = await getOptionValue(optn)
+        s = `${indent}${k}: ${t}`
+
+        // Ask for the import path of the required option
+        if (!importSrc) {
+          importSrc = `import ${t} from '${await getImport(t)}'`
+        }
       } else {
         if (optn.example) {
           s = `${indent}// ${k}: ${optn.example}`
@@ -218,14 +237,16 @@ const getOption = async (opt, memo, lvl) => {
         memo.values = memo.values.concat(`${s},`)
       }
     }
+    memo.imports.push(importSrc)
     memo.required.push(isRequired)
   }
 }
 
 const createConfigFileContents = async all => {
   const memo = {
-    values: configLines.top,
-    required: []
+    imports: [],
+    required: [],
+    values: configLines.top
   }
   for (let x of all.values) {
     await getOption(x, memo, 0)
@@ -237,7 +258,13 @@ const createConfigFileContents = async all => {
   const imports = _.reduce(
     all.imports,
     (m, v, i) => {
-      v.forEach(o => m.push(memo.required[i] ? o : `// ${o}`))
+      if (memo.imports[i]) {
+        // We asked for it
+        m.push(memo.imports[i])
+      } else {
+        // From example configuration
+        v.forEach(o => m.push(memo.required[i] ? o : `// ${o}`))
+      }
       return m
     },
     []
@@ -284,13 +311,13 @@ const askUseExternalApi = async () => {
   stdin.resume()
   const useApi = await ask(
     'Do you want to use external APIs while server-side rendering (y/n)?',
-    'Please answer Y/N.'
+    'Please answer y or n.'
   )
   if (useApi.toUpperCase() === 'Y') {
     const usePromiseCounter = await ask(
       `You can use redux-promise-counter, or provide your own function.
 Do you want to use redux-promise-counter (y/n)?`,
-      'Please answer Y or N.'
+      'Please answer y or n.'
     )
     useState =
       usePromiseCounter.toUpperCase() === 'Y'
