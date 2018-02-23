@@ -312,12 +312,12 @@ const renderGet = async (req, res, settings) => {
     }
     eventcollector.endJob(routeJob)
     const stateJob = req.eventcollector.startJob('getState')
-    const getStatePromise = strategy.getStatePromise(
-      req,
-      config,
-      route,
-      routeComponent
-    )
+
+    let state = {}
+    if (strategy.getStatePromise) {
+      state = await strategy.getStatePromise(req, config, route, routeComponent)
+    }
+
     res.statusCode = 200
     sendInitialHeaders(req, res, assets)
     const lang = config.getHtmlLang ? config.getHtmlLang(req) : 'en'
@@ -330,7 +330,6 @@ const renderGet = async (req, res, settings) => {
     if (res.flush) {
       res.flush()
     }
-    const state = (await getStatePromise) || {}
     eventcollector.endJob(stateJob)
     sendConfigDynamicHead(req, state, res)
     sendState(req, state, res)

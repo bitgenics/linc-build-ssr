@@ -51,4 +51,5 @@ const ${store} = createStore(
 	enhancer
 );
 `
+
 export { configFragment, clientImportFragment, createStoreFragment }

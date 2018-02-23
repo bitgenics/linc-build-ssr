@@ -11,6 +11,8 @@ const generateServerStrategy = require('./generateServerStrategy')
 const generateClient = require('./generateClient')
 const generateIncludes = require('./generateIncludes')
 
+const CONFIG_FILENAME = 'src/linc.config.js'
+
 const PROJECT_DIR = process.cwd()
 const DIST_DIR = path.resolve(PROJECT_DIR, 'dist')
 const MODULES_DIR = path.resolve(PROJECT_DIR, 'node_modules')
@@ -133,7 +135,7 @@ const readOnce = () =>
   })
 
 const ask = async (question, suggestion) => {
-  stdout.write(`${question}: `)
+  stdout.write(`${question} `)
 
   let answer = await readOnce()
   if (answer) {
@@ -149,7 +151,7 @@ const ask = async (question, suggestion) => {
 const getSourceDir = async () => {
   stdin.resume()
   const srcDir = await ask(
-    'Directory containing your source code',
+    'Directory containing your source code:',
     'Please provide a valid directory.'
   )
   stdin.pause()
@@ -166,11 +168,21 @@ const getOptionValue = async option => {
   const optionValue = await ask(
     `${option.comment}, e.g., '${
       option.example ? option.example : option.default
-    }'`,
+    }':`,
     'This is a mandatory field. Please enter a value.'
   )
   stdin.pause()
   return optionValue
+}
+
+const getImport = async option => {
+  stdin.resume()
+  const importValue = await ask(
+    `Please enter the path for '${option}' relative to your source dir:`,
+    `This is a mandatory field. Please enter a value.`
+  )
+  stdin.pause()
+  return importValue
 }
 
 const configLines = {
@@ -182,7 +194,7 @@ const configLines = {
   bottom: ['};', '', 'export default config']
 }
 
-const option = async (opt, memo, lvl) => {
+const getOption = async (opt, memo, lvl) => {
   const indent = '    '.repeat(lvl + 1)
   const keys = Object.keys(opt)
 
@@ -193,10 +205,11 @@ const option = async (opt, memo, lvl) => {
     // We can go a level deeper
     for (let k of keys) {
       memo.values = memo.values.concat(`${indent}${k}: {`)
-      await option(opt[k], memo, lvl + 1)
+      await getOption(opt[k], memo, lvl + 1)
       memo.values = memo.values.concat(`${indent}},`)
     }
   } else {
+    let importSrc
     let isRequired = false
     // Yep, innermost level
     for (let k of keys) {
@@ -204,7 +217,18 @@ const option = async (opt, memo, lvl) => {
       let s
       if (optn.required) {
         isRequired = true
-        s = `${indent}${k}: ${await getOptionValue(optn)}`
+
+        // Ask for the required option name
+        let t = await getOptionValue(optn)
+        s = `${indent}${k}: ${t}`
+
+        // In case it's an object like <App/>
+        t = t.replace(/^[^a-zA-Z0-9]*([a-zA-Z0-9]+)[^a-zA-Z0-9]*/, '$1')
+
+        // Ask for the import path of the required option
+        if (!importSrc) {
+          importSrc = `import ${t} from '${await getImport(t)}'`
+        }
       } else {
         if (optn.example) {
           s = `${indent}// ${k}: ${optn.example}`
@@ -216,17 +240,19 @@ const option = async (opt, memo, lvl) => {
         memo.values = memo.values.concat(`${s},`)
       }
     }
+    memo.imports.push(importSrc)
     memo.required.push(isRequired)
   }
 }
 
 const createConfigFileContents = async all => {
   const memo = {
-    values: configLines.top,
-    required: []
+    imports: [],
+    required: [],
+    values: configLines.top
   }
   for (let x of all.values) {
-    await option(x, memo, 0)
+    await getOption(x, memo, 0)
   }
   memo.values = memo.values.concat(configLines.bottom)
 
@@ -235,7 +261,13 @@ const createConfigFileContents = async all => {
   const imports = _.reduce(
     all.imports,
     (m, v, i) => {
-      v.forEach(o => m.push(memo.required[i] ? o : `// ${o}`))
+      if (memo.imports[i]) {
+        // We asked for it
+        m.push(memo.imports[i])
+      } else {
+        // From example configuration
+        v.forEach(o => m.push(memo.required[i] ? o : `// ${o}`))
+      }
       return m
     },
     []
@@ -254,15 +286,17 @@ const writeFile = (file, contents) =>
     })
   })
 
+const hasConfigFile = () =>
+  fs.existsSync(path.join(PROJECT_DIR, CONFIG_FILENAME))
+
 const createConfigFile = async strategy => {
-  const CONFIG_FILENAME = 'src/linc.config.js'
-  const configFile = path.join(process.cwd(), CONFIG_FILENAME)
+  const configFileName = path.join(PROJECT_DIR, CONFIG_FILENAME)
 
   // Don't do anything if config file exists
-  if (!fs.existsSync(configFile)) {
+  if (!hasConfigFile()) {
     const all = getConfigFragments(strategy)
-    const contents = await createConfigFileContents(all)
-    writeFile(configFile, contents)
+    const configFileContents = await createConfigFileContents(all)
+    writeFile(configFileName, configFileContents)
   }
 }
 
@@ -274,6 +308,30 @@ const postBuild = async () => {
   }
 }
 
+const askUseExternalApi = async () => {
+  let useState = null
+
+  stdin.resume()
+  const useApi = await ask(
+    'Do you want to use external APIs while server-side rendering (y/n)?',
+    'Please answer y or n.'
+  )
+  if (useApi.toUpperCase() === 'Y') {
+    const usePromiseCounter = await ask(
+      `You can use redux-promise-counter, or provide your own function.
+Do you want to use redux-promise-counter (y/n)?`,
+      'Please answer y or n.'
+    )
+    useState =
+      usePromiseCounter.toUpperCase() === 'Y'
+        ? 'redux-promise-counter'
+        : 'config-state'
+  }
+  stdin.pause()
+
+  return useState
+}
+
 const build = async (opts, callback) => {
   if (!callback) {
     callback = opts
@@ -282,7 +340,8 @@ const build = async (opts, callback) => {
     stdout = opts.stdout || stdout
   }
 
-  const strategy = createStrategy(getDependencies())
+  const useState = await askUseExternalApi()
+  const strategy = createStrategy(getDependencies(), useState)
   await createConfigFile(strategy)
   await generateClient(path.resolve(DIST_DIR, 'client.js'), strategy)
   const serverStrategy = generateServerStrategy(

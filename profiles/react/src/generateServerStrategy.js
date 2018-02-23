@@ -30,14 +30,13 @@ ${requireArray.join(',\n')}
   })
 
   const requireCode = Object.keys(requires).map(e => requires[e])
-  const code = `
+  return `
 const ${variableName} = {};
 ${requireCode.join('\n')};
 ${variableName}.strategy = ${JSON.stringify(strategy)}
 
 module.exports = ${variableName};
 	`
-  return code
 }
 
 const writeServerStrategy = (filename, strategy) => {

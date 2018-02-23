@@ -24,7 +24,7 @@ const pickRouter = deps => {
 
 const pickStatePromise = deps => {
   if (deps['redux']) {
-    return 'promiseCounter'
+    return 'config-redux'
   } else {
     return 'config-state'
   }
@@ -80,16 +80,18 @@ const getLibs = strategy => {
   const list = Object.keys(strategy).reduce((list, elem) => {
     return list.concat(strategy[elem])
   }, [])
-  return list.filter((item, pos, self) => self.indexOf(item) == pos)
+  return list.filter((item, pos, self) => self.indexOf(item) === pos)
 }
 
-const createStrategy = deps => {
+const createStrategy = (deps, useState) => {
   try {
     const strategy = {}
     strategy.inits = pickInits(deps)
     strategy.router = pickRouter(deps)
     strategy.render = pickRenderer(deps)
-    strategy.getStatePromise = pickStatePromise(deps)
+    if (useState) {
+      strategy.getStatePromise = pickStatePromise(deps)
+    }
     strategy.preRenders = pickPreRenders(deps)
     strategy.afterRenders = pickAfterRenders(deps)
     strategy.libs = getLibs(strategy)
