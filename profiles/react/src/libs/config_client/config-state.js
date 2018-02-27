@@ -10,7 +10,8 @@ const configFragment = {
       getStatePromise: {
         default: `(req, router, routeComponent) => {}`,
         required: false,
-        comment: 'State promise method.'
+        comment:
+          'State promise method. Make sure to customise it in the config file.'
       }
     }
   }
