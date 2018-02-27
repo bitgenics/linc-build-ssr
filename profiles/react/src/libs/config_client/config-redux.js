@@ -40,16 +40,16 @@ const configFragment = {
 const clientImportFragment = `import { createStore, applyMiddleware, compose } from 'redux'`
 
 const createStoreFragment = (store, initialState) => `
-const configMiddleware = config.redux.middleware || [];
-const enhancer = config.redux.enhancers ? 
-		compose(applyMiddleware(...configMiddleware), ...config.redux.enhancers) :
-		applyMiddleware(...configMiddleware);
+  const configMiddleware = config.redux.middleware || [];
+  const enhancer = config.redux.enhancers ? 
+    compose(applyMiddleware(...configMiddleware), ...config.redux.enhancers) :
+    applyMiddleware(...configMiddleware);
 
-const ${store} = createStore(
-	config.redux.reducer,
-	${initialState},
-	enhancer
-);
+  const ${store} = createStore(
+    config.redux.reducer,
+    ${initialState},
+    enhancer
+  );
 `
 
 export { configFragment, clientImportFragment, createStoreFragment }
