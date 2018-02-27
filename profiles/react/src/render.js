@@ -267,8 +267,7 @@ const sendConfigTrailer = (req, state, res) => {
 
 const sendDeferredScript = (res, assets) => {
   if (assets['defer.js']) {
-    res.write(`
-<script type="text/javascript">
+    res.write(`<script type="text/javascript">
 function runDeferScript() {
   var element = document.createElement("script");
   element.src = "/${assets['defer.js']}";
@@ -282,7 +281,7 @@ window.attachEvent("onload", runDeferScript);
   window.onload = runDeferScript;
 }
 </script>
-      `)
+`)
   }
 }
 
