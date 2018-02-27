@@ -6,6 +6,11 @@ const configFragment = {
         default: 'createStore',
         required: false,
         comment: 'Method to create store. Takes an optional initialState'
+      },
+      getStatePromise: {
+        default: `(req, router, routeComponent) => {}`,
+        required: false,
+        comment: 'State promise method.'
       }
     }
   }
