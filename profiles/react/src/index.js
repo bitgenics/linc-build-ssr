@@ -11,13 +11,13 @@ const generateServerStrategy = require('./generateServerStrategy')
 const generateClient = require('./generateClient')
 const generateIncludes = require('./generateIncludes')
 
-const CONFIG_FILENAME = 'src/linc.config.js'
-
 const PROJECT_DIR = process.cwd()
 const DIST_DIR = path.resolve(PROJECT_DIR, 'dist')
 const MODULES_DIR = path.resolve(PROJECT_DIR, 'node_modules')
 const LIB_DIR = path.resolve(DIST_DIR, 'lib')
 const packageJson = require(path.resolve(PROJECT_DIR, 'package.json'))
+const CONFIG_FILENAME = 'src/linc.config.js'
+const CONFIG_FILE = path.resolve(PROJECT_DIR, CONFIG_FILENAME)
 
 let stdin = process.stdin
 let stdout = process.stdout
@@ -263,13 +263,18 @@ const createConfigFileContents = async all => {
   const imports = _.reduce(
     all.imports,
     (m, v, i) => {
-      if (memo.imports[i]) {
+      const imprt = memo.imports[i]
+      if (imprt) {
         // We asked for it
-        m.push(memo.imports[i])
-      } else {
-        // From example configuration
-        v.forEach(o => m.push(memo.required[i] ? o : `// ${o}`))
+        m.push(imprt)
       }
+      // From example configuration
+      v.forEach(o => {
+        // Prevent duplicate lines
+        if (imprt !== o) {
+          m.push(memo.required[i] && !imprt ? o : `// ${o}`)
+        }
+      })
       return m
     },
     []
@@ -288,17 +293,14 @@ const writeFile = (file, contents) =>
     })
   })
 
-const hasConfigFile = () =>
-  fs.existsSync(path.join(PROJECT_DIR, CONFIG_FILENAME))
+const hasConfigFile = () => fs.existsSync(CONFIG_FILE)
 
 const createConfigFile = async strategy => {
-  const configFileName = path.join(PROJECT_DIR, CONFIG_FILENAME)
-
   // Don't do anything if config file exists
   if (!hasConfigFile()) {
     const all = getConfigFragments(strategy)
     const configFileContents = await createConfigFileContents(all)
-    writeFile(configFileName, configFileContents)
+    writeFile(CONFIG_FILE, configFileContents)
   }
 }
 
@@ -308,6 +310,13 @@ const postBuild = async () => {
     linc.sourceDir = await getSourceDir()
     await writePkg(packageJson)
   }
+}
+
+const useStateFromConfigFile = configFile => {
+  if (configFile.indexOf('redux:') > 0) return 'redux-promise-counter'
+  if (configFile.indexOf('state:') > 0) return 'config-promise-counter'
+
+  return undefined
 }
 
 const askUseExternalApi = async () => {
@@ -328,11 +337,29 @@ Do you want to use redux-promise-counter (y/n)?`,
     useState =
       usePromiseCounter.toUpperCase() === 'Y'
         ? 'redux-promise-counter'
-        : 'config-state'
+        : 'config-promise-counter'
   }
   stdin.pause()
 
   return useState
+}
+
+const getStrategy = async () => {
+  let strategy
+  let useState
+  let configFile
+
+  try {
+    configFile = fs.readFileSync(CONFIG_FILE, 'utf-8')
+    useState = useStateFromConfigFile(configFile)
+    strategy = createStrategy(getDependencies(), useState)
+  } catch (e) {
+    useState = await askUseExternalApi()
+    strategy = createStrategy(getDependencies(), useState)
+    await createConfigFile(strategy)
+  }
+
+  return strategy
 }
 
 const build = async (opts, callback) => {
@@ -343,9 +370,7 @@ const build = async (opts, callback) => {
     stdout = opts.stdout || stdout
   }
 
-  const useState = await askUseExternalApi()
-  const strategy = createStrategy(getDependencies(), useState)
-  await createConfigFile(strategy)
+  const strategy = await getStrategy()
   await generateClient(path.resolve(DIST_DIR, 'client.js'), strategy)
   const serverStrategy = generateServerStrategy(
     path.resolve(DIST_DIR, 'server-strategy.js'),
