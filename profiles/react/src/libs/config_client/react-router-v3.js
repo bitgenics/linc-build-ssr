@@ -16,7 +16,7 @@ const clientImportFragment = `import { Router, browserHistory } from 'react-rout
 
 const routerFragment = (routeComponent, history) =>
   `
-const ${history} = browserHistory
-const ${routeComponent} = <Router routes={config.router.routes} history={${history}} />`
+  const ${history} = browserHistory
+  const ${routeComponent} = <Router routes={config.router.routes} history={${history}} />`
 
 export { configFragment, clientImportFragment, routerFragment }
