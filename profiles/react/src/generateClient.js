@@ -79,8 +79,7 @@ const createClientCode = strategy => {
     clientStrategy.getStatePromise.createStoreFragment &&
     clientStrategy.getStatePromise.createStoreFragment('store', 'initialState')
 
-  return `
-${getImports(strategy)}
+  return `${getImports(strategy)}
 
 import createConfig from 'linc-config-js'
 
@@ -115,7 +114,7 @@ if (!config.disableServiceWorker && 'serviceWorker' in navigator) {
     console.log('Registration failed with ' + error);
   });
 }
-	`
+`
 }
 
 const generateClient = async (filename, strategy) => {
