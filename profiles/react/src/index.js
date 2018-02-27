@@ -331,6 +331,8 @@ Do you want to use external APIs while server-side rendering (y/n)?`,
   if (useApi.toUpperCase() === 'Y') {
     const usePromiseCounter = await ask(
       `You can use redux-promise-counter, or provide your own function.
+If you want to use your own promise counter, you can find an
+empty function in the config file for you to fill.
 Do you want to use redux-promise-counter (y/n)?`,
       'Please answer y or n.'
     )
