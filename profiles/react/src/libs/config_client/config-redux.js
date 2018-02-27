@@ -1,7 +1,7 @@
 const configFragment = {
   imports: [
-    `import reducer from './reducers';`,
-    `import thunk from 'redux-thunk';`
+    `import reducer from './reducers'`,
+    `import thunk from 'redux-thunk'`
   ],
   values: {
     redux: {

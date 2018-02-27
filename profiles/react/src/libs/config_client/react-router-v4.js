@@ -1,5 +1,5 @@
 const configFragment = {
-  imports: [`import App from './App';`],
+  imports: [`import App from './App'`],
   values: {
     root: {
       example: '<App/>',

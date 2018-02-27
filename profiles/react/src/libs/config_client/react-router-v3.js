@@ -1,5 +1,5 @@
 const configFragment = {
-  imports: [`import routes from './routes';`],
+  imports: [`import routes from './routes'`],
   values: {
     router: {
       routes: {
