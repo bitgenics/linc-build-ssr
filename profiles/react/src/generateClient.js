@@ -20,7 +20,11 @@ const mapValues = (obj, iterator) => {
 }
 
 const getImports = strategy => {
-  const libs = strategy.libs.map(lib => requireLib(lib)).filter(e => e)
+  const libs = strategy.libs
+    .map(lib => {
+      if (lib) return requireLib(lib)
+    })
+    .filter(e => e)
   const fragments = libs.map(
     module => (module ? module.clientImportFragment : '')
   )
