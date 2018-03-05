@@ -158,35 +158,6 @@ const getSourceDir = async () => {
   return srcDir
 }
 
-/**
- * Get option value
- * @param option
- * @returns {Promise<*>}
- */
-const getOptionValue = async option => {
-  stdin.resume()
-  const optionValue = await ask(
-    `
-${option.comment}, e.g., '${
-      option.example ? option.example : option.default
-    }':`,
-    'This is a mandatory field. Please enter a value.'
-  )
-  stdin.pause()
-  return optionValue
-}
-
-const getImport = async option => {
-  stdin.resume()
-  const importValue = await ask(
-    `Please tell us where we can find '${option} by entering its path.
-Path for ${option} (relative to your source dir):`,
-    `This is a mandatory field. Please enter a value.`
-  )
-  stdin.pause()
-  return importValue
-}
-
 const configLines = {
   top: [
     'const config = {',
@@ -211,7 +182,6 @@ const getOption = async (opt, memo, lvl) => {
       memo.values = memo.values.concat(`${indent}},`)
     }
   } else {
-    let importSrc
     let isRequired = false
     // Yep, innermost level
     for (let k of keys) {
@@ -219,18 +189,7 @@ const getOption = async (opt, memo, lvl) => {
       let s
       if (optn.required) {
         isRequired = true
-
-        // Ask for the required option name
-        let t = await getOptionValue(optn)
-        s = `${indent}${k}: ${t}`
-
-        // In case it's an object like <App/>
-        t = t.replace(/^[^a-zA-Z0-9]*([a-zA-Z0-9]+)[^a-zA-Z0-9]*/, '$1')
-
-        // Ask for the import path of the required option
-        if (!importSrc) {
-          importSrc = `import ${t} from '${await getImport(t)}'`
-        }
+        s = `${indent}${k}: ${optn.example ? optn.example : optn.default}`
       } else {
         if (optn.example) {
           s = `${indent}// ${k}: ${optn.example}`
@@ -242,14 +201,12 @@ const getOption = async (opt, memo, lvl) => {
         memo.values = memo.values.concat(`${s},`)
       }
     }
-    memo.imports.push(importSrc)
     memo.required.push(isRequired)
   }
 }
 
 const createConfigFileContents = async all => {
   const memo = {
-    imports: [],
     required: [],
     values: configLines.top
   }
@@ -263,17 +220,9 @@ const createConfigFileContents = async all => {
   const imports = _.reduce(
     all.imports,
     (m, v, i) => {
-      const imprt = memo.imports[i]
-      if (imprt) {
-        // We asked for it
-        m.push(imprt)
-      }
       // From example configuration
       v.forEach(o => {
-        // Prevent duplicate lines
-        if (imprt !== o) {
-          m.push(memo.required[i] && !imprt ? o : `// ${o}`)
-        }
+        m.push(memo.required[i] ? o : `// ${o}`)
       })
       return m
     },
@@ -312,58 +261,6 @@ const postBuild = async () => {
   }
 }
 
-const useStateFromConfigFile = configFile => {
-  if (configFile.indexOf('redux:') > 0) return 'redux-promise-counter'
-  if (configFile.indexOf('state:') > 0) return 'config-promise-counter'
-
-  return undefined
-}
-
-const askUseExternalApi = async () => {
-  let useState = null
-
-  stdin.resume()
-  const useApi = await ask(
-    `
-Do you want to use external APIs while server-side rendering (y/n)?`,
-    'Please answer y or n.'
-  )
-  if (useApi.toUpperCase() === 'Y') {
-    const usePromiseCounter = await ask(
-      `You can use redux-promise-counter, or provide your own function.
-If you want to use your own promise counter, you can find an
-empty function in the config file for you to fill.
-Do you want to use redux-promise-counter (y/n)?`,
-      'Please answer y or n.'
-    )
-    useState =
-      usePromiseCounter.toUpperCase() === 'Y'
-        ? 'redux-promise-counter'
-        : 'config-promise-counter'
-  }
-  stdin.pause()
-
-  return useState
-}
-
-const getStrategy = async () => {
-  let strategy
-  let useState
-  let configFile
-
-  try {
-    configFile = fs.readFileSync(CONFIG_FILE, 'utf-8')
-    useState = useStateFromConfigFile(configFile)
-    strategy = createStrategy(getDependencies(), useState)
-  } catch (e) {
-    useState = await askUseExternalApi()
-    strategy = createStrategy(getDependencies(), useState)
-    await createConfigFile(strategy)
-  }
-
-  return strategy
-}
-
 const build = async (opts, callback) => {
   if (!callback) {
     callback = opts
@@ -372,7 +269,8 @@ const build = async (opts, callback) => {
     stdout = opts.stdout || stdout
   }
 
-  const strategy = await getStrategy()
+  const strategy = await createStrategy(getDependencies())
+  await createConfigFile(strategy)
   await generateClient(path.resolve(DIST_DIR, 'client.js'), strategy)
   const serverStrategy = generateServerStrategy(
     path.resolve(DIST_DIR, 'server-strategy.js'),
