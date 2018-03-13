@@ -1,5 +1,5 @@
 import React from 'react'
-import ReactDOMServer from 'react-dom/server'
+import ReactDOMServer from 'react-dom/server.browser'
 import createPromiseCounter from 'redux-promise-counter'
 import { createStore, applyMiddleware, compose } from 'redux'
 import { Provider } from 'react-redux'
