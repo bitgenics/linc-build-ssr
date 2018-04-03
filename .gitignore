@@ -39,7 +39,8 @@ jspm_packages
 customer/
 dist/
 
-scrap.js
-
 # Joe backup files
 *~
+
+data/
+scrap/
