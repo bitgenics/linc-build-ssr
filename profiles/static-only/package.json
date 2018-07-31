@@ -1,5 +1,5 @@
 {
-  "name": "linc-profile-static-only",
+  "name": "@bitgenics/linc-profile-static-only",
   "version": "0.2.0",
   "description": "A generic profile that serves mostly static pages. Support multiple environments.",
   "main": "dist/index.js",
