@@ -72,9 +72,11 @@ const createClientCode = strategy => {
     .filter(e => e)
   let runRender = 'main()'
   if (inits.length > 0) {
-    runRender = `Promise.all([
+    runRender = `window.onload = () => {
+      Promise.all([
   ${inits.join('\n')}
 ]).then(main())
+}
     `
   }
 

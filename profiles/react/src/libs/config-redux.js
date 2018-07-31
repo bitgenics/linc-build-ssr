@@ -7,13 +7,8 @@ import { Provider } from 'react-redux'
 const getStatePromiseFn = (req, config, route, routeComponent) => {
   return new Promise(async (resolve, reject) => {
     const eventcollector = req.eventcollector
-    let firstHtml
     const promiseCounter = createPromiseCounter((state, async) => {
-      if (async) {
-        return resolve({ json: state })
-      } else {
-        return resolve({ html: firstHtml })
-      }
+      return resolve(state)
     })
 
     try {
@@ -29,7 +24,7 @@ const getStatePromiseFn = (req, config, route, routeComponent) => {
         config.init(env)
       }
 
-      firstHtml = await ReactDOMServer.renderToString(
+      ReactDOMServer.renderToString(
         <Provider store={store}>{routeComponent}</Provider>
       )
     } catch (e) {

@@ -9,10 +9,12 @@ function getBundles(manifest, moduleIds) {
 }
 
 const initsFn = () => {
+  console.log('PRELOAD')
   return Loadable.preloadAll()
 }
 
 const preRendersFn = (req, renderComponent, state) => {
+  console.log('PRERENDER')
   req.linc = req.linc || {}
   req.linc.loaded_modules = []
   return (
@@ -24,11 +26,15 @@ const preRendersFn = (req, renderComponent, state) => {
 }
 
 const afterRendersFn = (req, config, assets) => {
+  console.log('AFTERRENDER')
+  console.log('loaded_modules', req.linc.loaded_modules)
   const bundles = getBundles(stats, req.linc.loaded_modules)
+  console.log('bundles', bundles)
   const scriptList = bundles.filter(bundle => bundle.file.endsWith('.js'))
   const scripts = scriptList.map(script => {
     return { src: `/${script.file}` }
   })
+  console.log('scripts', scripts)
   return { trailer: { scripts } }
 }
 

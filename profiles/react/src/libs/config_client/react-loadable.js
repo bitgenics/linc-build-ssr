@@ -15,6 +15,9 @@ const webpackConfig = distDir => {
       }
     },
     client: {
+      babel: {
+        plugins: ['react-loadable/babel']
+      },
       plugins: [
         {
           import: 'react-loadable/webpack',

@@ -1,6 +1,6 @@
 {
   "name": "linc-profile-generic-react",
-  "version": "0.17.2",
+  "version": "0.17.6-0",
   "main": "dist/index.js",
   "scripts": {
     "lint": "eslint src test --fix",

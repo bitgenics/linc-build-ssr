@@ -261,14 +261,7 @@ const postBuild = async () => {
   }
 }
 
-const build = async (opts, callback) => {
-  if (!callback) {
-    callback = opts
-  } else {
-    stdin = opts.stdin || stdin
-    stdout = opts.stdout || stdout
-  }
-
+const build = async () => {
   const strategy = await createStrategy(getDependencies())
   await createConfigFile(strategy)
   await generateClient(path.resolve(DIST_DIR, 'client.js'), strategy)
@@ -298,8 +291,6 @@ const build = async (opts, callback) => {
   console.log(
     'We have created an overview of your bundles in dist/bundle-report.html'
   )
-
-  callback()
 }
 
 module.exports = build

@@ -183,11 +183,9 @@ const sendConfigDynamicHead = (req, state, res) => {
 }
 
 const sendState = (req, state, res) => {
-  if (state.json) {
+  if (state) {
     res.write(
-      `<script>window.__INITIALSTATE__ = ${JSON.stringify(
-        state.json
-      )};</script>`
+      `<script>window.__INITIALSTATE__ = ${JSON.stringify(state)};</script>`
     )
   }
   if (req.userInfo) {
@@ -243,14 +241,15 @@ const renderHTML = (html, req, res) => {
 }
 
 const getRenderComponent = (req, routeComponent, state) => {
+  console.log('RENDERCOMPONENT')
   return strategy.preRenders.reduce((renderComponent, fn) => {
     const retval = fn(req, renderComponent, state)
     return retval
   }, routeComponent)
 }
 
-const renderToString = async (req, routeComponent, state, res) => {
-  const renderComponent = getRenderComponent(req, routeComponent, state.json)
+const renderToString = async (req, renderComponent, state, res) => {
+  console.log('RENDERTOSTRING')
   const html = await strategy.render(renderComponent)
   return renderHTML(html, req, res)
 }
@@ -316,6 +315,7 @@ const renderGet = async (req, res, settings) => {
     if (strategy.getStatePromise) {
       state = await strategy.getStatePromise(req, config, route, routeComponent)
     }
+    console.log('state', state)
 
     res.statusCode = 200
     sendInitialHeaders(req, res, assets)
@@ -329,31 +329,32 @@ const renderGet = async (req, res, settings) => {
     if (res.flush) {
       res.flush()
     }
-    eventcollector.endJob(stateJob)
     sendConfigDynamicHead(req, state, res)
     sendState(req, state, res)
+    eventcollector.endJob(stateJob)
     const renderJob = eventcollector.startJob('render')
     let renderMethod
     let trailer
-    if (state.html) {
-      renderMethod = 'static'
-      trailer = renderHTML(state.html, req, res)
-    } else if (strategy.render.canStream && strategy.render.canStream()) {
+    const renderComponent = getRenderComponent(req, routeComponent, state)
+    if (strategy.render.canStream && strategy.render.canStream()) {
       renderMethod = 'renderToStream'
-      trailer = await renderToStream(req, routeComponent, state, res)
+      trailer = await renderToStream(req, renderComponent, state, res)
     } else {
       renderMethod = 'renderToString'
-      trailer = await renderToString(req, routeComponent, state, res)
+      trailer = await renderToString(req, renderComponent, state, res)
     }
     eventcollector.endJob(renderJob, { renderMethod })
+    console.log('trailer', trailer)
 
     if (polyfillsURL) {
       res.write(`<script src="${polyfillsURL}"></script>`)
     }
+
     res.write(`<script src="/${assets['manifest.js']}"></script>`)
+    if (trailer) res.write(trailer)
     res.write(`<script src="/${assets['vendor.js']}"></script>`)
     res.write(`<script src="/${assets['main.js']}"></script>`)
-    if (trailer) res.write(trailer)
+
     sendConfigTrailer(req, state, res)
     sendDeferredScript(res, assets)
     res.write('</body></html>')
