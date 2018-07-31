@@ -28,15 +28,15 @@ const build_client = async () => {
   console.log('Cleaning dist directory')
   await fse.remove('./dist')
   if (pkgJson.scripts && pkgJson.scripts.clean) {
-    console.log('Running yarn run clean')
-    await spawn('yarn', ['run', 'clean'])
+    console.log('Running npm run clean')
+    await spawn('npm', ['run', 'clean'])
   }
   if (!await fse.exists('./node_modules')) {
-    console.log('Running `yarn install`')
-    await spawn('yarn', ['install'])
+    console.log('Running `npm install`')
+    await spawn('npm', ['install'])
   }
-  console.log('Running `yarn build`')
-  const err = await spawn('yarn', ['build'])
+  console.log('Running `npm run build`')
+  const err = await spawn('npm', ['run', 'build'])
   await fse.ensureDir('./dist')
   await fse.move('./build', './dist/import')
   console.log('Preparing static assets for deployment to CDN')
