@@ -321,7 +321,7 @@ const renderGet = async (req, res, settings) => {
     sendInitialHeaders(req, res, assets)
     const lang = config.getHtmlLang ? config.getHtmlLang(req) : 'en'
     res.write(
-      `<!DOCTYPE html><html lang="${lang}" prefix="og: http://ogp.me/ns#><head>`
+      `<!DOCTYPE html><html lang="${lang}" prefix="og: http://ogp.me/ns"><head>`
     )
     sendHeadAssets(res, assets)
     sendConfigStaticHead(req, res)
